@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<h1>Order Successful 🎉</h1>
+
+<p>
+    Your order has been placed successfully.
+</p>
+
+<p>
+    Order ID: {{ order.id }}
+</p>
+
+<a href="/orders/payment-success/{{ order.id }}/">
+
+    <button>
+        Pay Now
+    </button>
+
+</a>
+
+<p>
+    Total Amount: ₹{{ order.total_price }}
+</p>
+
+<a href="/products/">
+    Continue Shopping
+</a>
+
+{% endblock %}

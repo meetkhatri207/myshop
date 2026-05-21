@@ -1,0 +1,23 @@
+from django.urls import path
+from . import views
+
+urlpatterns = [
+   path(
+    'payment-success/<int:order_id>/',
+    views.payment_success
+),
+path(
+    'detail/<int:order_id>/',
+    views.order_detail
+),
+path('apply-coupon/', views.apply_coupon),
+
+path('remove-coupon/', views.remove_coupon),
+
+path(
+    'payment/<int:order_id>/',
+    views.payment_page
+),
+path('my-orders/', views.my_orders),
+path('<int:order_id>/', views.order_detail)
+]

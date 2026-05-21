@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="orders-container">
+
+    <h1>
+        My Orders
+    </h1>
+
+    {% for order in orders %}
+
+    <script>
+        console.log("test")
+    </script>
+
+
+    <div class="order-card">
+
+
+        <h2>
+            Order #{{ order.id }}
+        </h2>
+
+        <p>
+            Total:
+            ₹ {{ order.total_price }}
+        </p>
+
+        <p>
+            Payment Status:
+
+            {% if order.payment_status %}
+
+            Paid
+
+            {% else %}
+
+            Pending
+
+            {% endif %}
+
+        </p>
+
+        <a href="/orders/{{ order.id }}/">
+
+            View Details
+
+        </a>
+
+    </div>
+
+    {% empty %}
+
+    <h2>
+        No Orders Found
+    </h2>
+
+    {% endfor %}
+
+</div>
+
+{% endblock %}

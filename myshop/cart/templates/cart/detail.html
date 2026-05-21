@@ -1,0 +1,485 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: Arial, Helvetica, sans-serif;
+    }
+
+    body {
+        background: #f5f7fb;
+    }
+
+    .cart-container {
+        max-width: 1200px;
+        margin: 40px auto;
+        padding: 20px;
+    }
+
+    .cart-title {
+        font-size: 40px;
+        margin-bottom: 30px;
+        color: #0f172a;
+    }
+
+    /* COUPON */
+
+    .coupon-box {
+        background: white;
+        padding: 25px;
+        border-radius: 18px;
+        margin-bottom: 30px;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.06);
+    }
+
+    .coupon-title {
+        margin-bottom: 18px;
+        color: #0f172a;
+    }
+
+    .coupon-form {
+        display: flex;
+        gap: 15px;
+        flex-wrap: wrap;
+    }
+
+    .coupon-input {
+        flex: 1;
+        min-width: 250px;
+        padding: 14px;
+        border: 1px solid #dbe2ea;
+        border-radius: 12px;
+        outline: none;
+        font-size: 15px;
+    }
+
+    .apply-btn {
+        padding: 14px 24px;
+        background: #2563eb;
+        border: none;
+        color: white;
+        border-radius: 12px;
+        cursor: pointer;
+        font-weight: bold;
+        transition: 0.3s;
+    }
+
+    .apply-btn:hover {
+        background: #1d4ed8;
+    }
+
+    /* CART ITEMS */
+
+    .cart-items {
+        display: flex;
+        flex-direction: column;
+        gap: 25px;
+    }
+
+    .cart-card {
+        display: flex;
+        gap: 25px;
+        background: white;
+        padding: 25px;
+        border-radius: 20px;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.06);
+        align-items: center;
+        transition: 0.3s;
+    }
+
+    .cart-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 24px rgba(0, 0, 0, 0.08);
+    }
+
+    .cart-image {
+        width: 180px;
+        height: 180px;
+        object-fit: contain;
+        border-radius: 16px;
+    }
+
+    .cart-info {
+        flex: 1;
+    }
+
+    .product-name {
+        font-size: 28px;
+        margin-bottom: 12px;
+        color: #0f172a;
+    }
+
+    .product-price,
+    .product-total,
+    .product-quantity {
+        margin-bottom: 10px;
+        color: #475569;
+        font-size: 17px;
+    }
+
+    /* QUANTITY */
+
+    .quantity-box {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        margin-top: 18px;
+    }
+
+    .qty-btn {
+        width: 38px;
+        height: 38px;
+        border-radius: 10px;
+        background: #2563eb;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+        font-size: 22px;
+        font-weight: bold;
+        transition: 0.3s;
+    }
+
+    .qty-btn-disabled {
+        width: 38px;
+        height: 38px;
+        border-radius: 10px;
+        background: #e3e3e3;
+        color: #c3c3c3;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+        font-size: 22px;
+        font-weight: bold;
+        transition: 0.3s;
+    }
+
+    .qty-btn:hover {
+        background: #1d4ed8;
+    }
+
+    .qty-number {
+        font-size: 18px;
+        font-weight: bold;
+        color: #0f172a;
+    }
+
+    /* REMOVE */
+
+    .remove-btn {
+        display: inline-block;
+        margin-top: 18px;
+        padding: 12px 18px;
+        background: #fee2e2;
+        color: #dc2626;
+        text-decoration: none;
+        border-radius: 12px;
+        font-weight: bold;
+        transition: 0.3s;
+    }
+
+    .remove-btn:hover {
+        background: #fecaca;
+    }
+
+    /* EMPTY */
+
+    .empty-cart {
+        background: white;
+        padding: 40px;
+        border-radius: 20px;
+        text-align: center;
+        color: #64748b;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.06);
+    }
+
+    /* SUMMARY */
+
+    .summary-box {
+        margin-top: 35px;
+        background: white;
+        padding: 30px;
+        border-radius: 20px;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.06);
+    }
+
+    .grand-total {
+        font-size: 32px;
+        margin-bottom: 25px;
+        color: #0f172a;
+    }
+
+    .actions {
+        display: flex;
+        gap: 15px;
+        flex-wrap: wrap;
+    }
+
+    .action-btn {
+        padding: 15px 24px;
+        border-radius: 12px;
+        text-decoration: none;
+        font-weight: bold;
+        transition: 0.3s;
+    }
+
+    .checkout-btn {
+        background: #2563eb;
+        color: white;
+    }
+
+    .checkout-btn:hover {
+        background: #1d4ed8;
+    }
+
+    .payment-btn {
+        background: #16a34a;
+        color: white;
+    }
+
+    .payment-btn:hover {
+        background: #15803d;
+    }
+
+    .stock-success {
+        color: #16a34a;
+        font-weight: bold;
+    }
+
+    .stock-warning {
+        color: #eab308;
+        font-weight: bold;
+    }
+
+    .stock-danger {
+        color: #dc2626;
+        font-weight: bold;
+    }
+
+    @media(max-width: 768px) {
+
+        .cart-card {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .cart-image {
+            width: 100%;
+            height: 250px;
+        }
+
+        .product-name {
+            font-size: 24px;
+        }
+
+        .grand-total {
+            font-size: 26px;
+        }
+
+    }
+</style>
+
+<div class="cart-container">
+
+    <h1 class="cart-title">
+        Shopping Cart
+    </h1>
+    <!-- COUPON -->
+
+    <div class="coupon-box">
+
+        <h2 class="coupon-title">
+            Apply Coupon
+        </h2>
+
+        <form method="POST" action="/orders/apply-coupon/" class="coupon-form">
+
+            {% csrf_token %}
+
+            <input type="text" name="code" placeholder="Enter coupon code" class="coupon-input">
+
+            <button type="submit" class="apply-btn">
+                Apply
+            </button>
+
+        </form>
+
+        <a href="/orders/remove-coupon/" class="remove-coupon-btn">
+
+            Remove Coupon
+
+        </a>
+
+    </div>
+
+    <div class="cart-items">
+
+        {% for product in products %}
+
+        <div class="cart-card">
+
+            {% if product.image %}
+
+            <img src="{{ product.image.url }}" class="cart-image">
+
+            {% else %}
+
+            <img src="https://via.placeholder.com/300x300?text=No+Image">
+
+            {% endif %}
+
+
+
+            <div class="cart-info">
+
+                <h2 class="product-name">
+                    {{ product.name }}
+                </h2>
+
+                <p class="product-price">
+                    Price: ₹ {{ product.price }}
+                </p>
+
+                <p class="product-quantity">
+                    Quantity: {{ product.quantity }}
+                </p>
+
+                <p class="product-total">
+                    Total: ₹ {{ product.total_price }}
+                </p>
+
+                {% if product.stock > 5 %}
+
+                <p class="stock-success">
+                    In Stock ({{ product.stock }} available)
+                </p>
+
+                {% elif product.stock > 0 %}
+
+                <p class="stock-warning">
+                    Only {{ product.stock }} left
+                </p>
+
+                {% else %}
+
+                <p class="stock-danger">
+                    Out Of Stock
+                </p>
+
+                {% endif %}
+
+
+                <div class="quantity-box">
+
+
+                    <a href="/cart/decrease/{{ product.id }}/" class="qty-btn">
+                        -
+                    </a>
+
+
+                    <span class="qty-number">
+                        {{ product.quantity }}
+                    </span>
+
+                    {% if product.quantity < product.stock %} <a href="/cart/increase/{{ product.id }}/"
+                        class="qty-btn">
+                        +
+                        </a>
+
+                        {% else %}
+
+                        <span class="qty-btn-disabled">
+                            +
+                        </span>
+
+                        {% endif %}
+
+                </div>
+
+                <a href="/cart/remove/{{ product.id }}" class="remove-btn">
+                    Remove Item
+                </a>
+
+            </div>
+
+        </div>
+
+        {% empty %}
+
+        <div class="empty-cart">
+
+            <h2>
+                Your cart is empty
+            </h2>
+
+        </div>
+
+        {% endfor %}
+
+    </div>
+
+
+    <div class="summary-box">
+
+        <h2>
+            Cart Summary
+        </h2>
+
+        <hr style="margin: 16px 0;">
+
+        <p style="margin-bottom: 16px;">
+            Original Total:
+            ₹ {{ total }}
+        </p>
+
+
+        {% if coupon_data %}
+
+        <p class="coupon-success" style="margin-bottom: 16px;">
+
+            Coupon Applied:
+            <strong>
+                {{ coupon_data.code }}
+            </strong>
+
+        </p>
+
+        <p class="discount-text" style="margin-bottom: 16px;">
+
+            Discount:
+            - ₹ {{ discount_amount }}
+
+            ({{ coupon_data.discount }}% OFF)
+
+        </p>
+
+        {% endif %}
+
+        <h2 class="grand-total">
+
+            Final Total:
+            ₹ {{ final_total }}
+
+        </h2>
+
+        <div class="actions">
+
+            <a href="/cart/checkout/" class="action-btn checkout-btn">
+
+                Proceed To Checkout
+
+            </a>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

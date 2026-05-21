@@ -1,0 +1,293 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: Arial, Helvetica, sans-serif;
+    }
+
+    .products-page {
+        padding: 40px;
+        background: #f5f7fb;
+        min-height: 100vh;
+    }
+
+    .page-title {
+        font-size: 38px;
+        margin-bottom: 30px;
+        color: #1e293b;
+    }
+
+    /* SEARCH */
+
+    .search-form {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 30px;
+    }
+
+    .search-input {
+        width: 350px;
+        padding: 14px;
+        border: 1px solid #dbe2ea;
+        border-radius: 10px;
+        outline: none;
+        font-size: 15px;
+        background: white;
+    }
+
+    .search-btn {
+        padding: 14px 24px;
+        border: none;
+        background: #2563eb;
+        color: white;
+        border-radius: 10px;
+        cursor: pointer;
+        font-weight: bold;
+        transition: 0.3s;
+    }
+
+    .search-btn:hover {
+        background: #1d4ed8;
+    }
+
+    .category-title {
+        margin-bottom: 15px;
+        color: #0f172a;
+    }
+
+    .categories {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-bottom: 35px;
+    }
+
+    .category-link {
+        padding: 10px 18px;
+        background: white;
+        border-radius: 30px;
+        text-decoration: none;
+        color: #334155;
+        border: 1px solid #dbe2ea;
+        transition: 0.3s;
+        font-size: 14px;
+    }
+
+    .category-link:hover {
+        background: #2563eb;
+        color: white;
+    }
+
+    .active-category {
+        background: #0f172a;
+        color: white;
+        border-color: #0f172a;
+    }
+
+    .products-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 25px;
+    }
+
+    .product-card {
+        background: white;
+        border-radius: 18px;
+        overflow: hidden;
+        padding: 18px;
+        transition: 0.3s;
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
+    }
+
+    .product-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    }
+
+    .product-image {
+        width: 100%;
+        height: 320px;
+        object-fit: contain;
+        border-radius: 12px;
+        margin-bottom: 15px;
+    }
+
+    .product-name {
+        font-size: 20px;
+        margin-bottom: 12px;
+    }
+
+    .cart-btn {
+        background: #2563eb;
+        color: white !important;
+    }
+
+    .cart-btn:hover {
+        background: #1d4ed8;
+    }
+
+    .wishlist-btn {
+        background: #fee2e2;
+        color: #dc2626;
+    }
+
+    .wishlist-btn:hover {
+        background: #fecaca;
+    }
+
+    .product-card a {
+        text-decoration: none;
+        color: #0f172a;
+    }
+
+    .product-price {
+        font-size: 20px;
+        font-weight: bold;
+        color: #2563eb;
+        margin-bottom: 18px;
+    }
+
+    .product-actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .btn {
+        padding: 10px 16px;
+        border-radius: 10px;
+        text-decoration: none;
+        font-size: 14px;
+        font-weight: bold;
+        transition: 0.3s;
+    }
+
+
+
+    .out-stock {
+        color: red;
+        font-weight: bold;
+        margin-top: 10px;
+    }
+
+    @media(max-width: 768px) {
+
+        .products-page {
+            padding: 20px;
+        }
+
+        .search-form {
+            flex-direction: column;
+        }
+
+        .search-input {
+            width: 100%;
+        }
+    }
+</style>
+
+<div class="products-page">
+
+    <h1 class="page-title">
+        All Products
+    </h1>
+
+    <form method="GET" class="search-form">
+
+        <input type="text" name="search" placeholder="Search products..." value="{{ request.GET.search }}"
+            class="search-input">
+
+        <button type="submit" class="search-btn">
+            Search
+        </button>
+
+    </form>
+
+    <h3 class="category-title">
+        Categories
+    </h3>
+
+    <div class="categories">
+
+        <a href="/products/" class="category-link {% if not selected_category %}active-category{% endif %}">
+            All
+        </a>
+
+        {% for category in categories %}
+
+        <a href="/products/?category={{ category.id }}"
+            class="category-link {% if selected_category == category.id|stringformat:'s' %}active-category{% endif %}">
+            {{ category.name }}
+        </a>
+
+        {% endfor %}
+
+    </div>
+
+    <div class="products-grid">
+
+        {% for product in products %}
+
+
+
+        <div class="product-card">
+
+            <a href="/products/{{ product.id }}/">
+
+                {% if product.image %}
+
+                <img src="{{ product.image.url }}" class="product-image">
+
+                {% else %}
+
+                <img src="https://via.placeholder.com/300x300?text=No+Image" class="product-image">
+
+                {% endif %}
+
+                <h2 class="product-name">
+
+                    {{ product.name }}
+                </h2>
+
+                <p class="product-price">
+                    ₹{{ product.price }}
+                </p>
+
+                <div class="product-actions">
+
+                    <a href="/wishlist/add/{{ product.id }}/" class="btn wishlist-btn">
+                        ❤️ Wishlist
+                    </a>
+
+                    {% if product.stock > 0 %}
+
+                    <a href="/cart/add/{{ product.id }}" class="btn cart-btn">
+                        Add To Cart
+                    </a>
+
+                    {% else %}
+
+                    <p class="out-stock">
+                        Out Of Stock
+                    </p>
+
+                    {% endif %}
+
+                </div>
+
+            </a>
+
+        </div>
+
+        {% endfor %}
+
+    </div>
+
+</div>
+
+{% endblock %}

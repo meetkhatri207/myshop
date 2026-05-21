@@ -1,0 +1,271 @@
+{% block content %}
+
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: Arial, Helvetica, sans-serif;
+    }
+
+    body {
+        background: #f5f7fb;
+    }
+
+    .payment-container {
+        min-height: 90vh;
+        max-width: 500px;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        align-items: center;
+        margin: auto;
+        padding: 20px;
+    }
+
+    .payment-card {
+        width: 100%;
+        max-width: 500px;
+        background: white;
+        padding: 40px;
+        border-radius: 24px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+        text-align: center;
+    }
+
+    .payment-icon {
+        width: 90px;
+        height: 90px;
+        background: #eff6ff;
+        color: #2563eb;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 40px;
+        margin: 0 auto 25px;
+    }
+
+    .payment-title {
+        font-size: 36px;
+        margin-bottom: 12px;
+        color: #0f172a;
+    }
+
+    .payment-subtitle {
+        color: #64748b;
+        margin-bottom: 30px;
+        line-height: 1.6;
+    }
+
+    /* ORDER INFO */
+
+    .order-info {
+        background: #f8fafc;
+        border-radius: 18px;
+        padding: 25px;
+        margin-bottom: 30px;
+        text-align: left;
+    }
+
+    .info-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 16px;
+        font-size: 16px;
+        color: #334155;
+    }
+
+    .info-row:last-child {
+        margin-bottom: 0;
+    }
+
+    .grand-total {
+        font-size: 24px;
+        font-weight: bold;
+        color: #2563eb;
+    }
+
+    /* BUTTON */
+
+    .pay-btn {
+        width: 100%;
+        padding: 16px;
+        border: none;
+        border-radius: 16px;
+        background: #2563eb;
+        color: white;
+        font-size: 17px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: 0.3s;
+    }
+
+    .pay-btn:hover {
+        background: #1d4ed8;
+        transform: translateY(-2px);
+    }
+
+    .secure-text {
+        margin-top: 18px;
+        color: #64748b;
+        font-size: 14px;
+    }
+
+    @media(max-width: 600px) {
+
+        .payment-card {
+            padding: 30px;
+        }
+
+        .payment-title {
+            font-size: 30px;
+        }
+
+    }
+</style>
+
+<div class="payment-container">
+
+
+    <a href="/cart/" style="margin-right: auto; color: #1d4ed8; font-weight: 600; text-decoration: none;">⬅ Back to
+        Cart</a>
+
+    <div class="payment-card">
+
+
+        <div class="payment-icon">
+            💳
+        </div>
+
+        <h1 class="payment-title">
+            Secure Payment
+        </h1>
+
+        <p class="payment-subtitle">
+            Complete your payment securely using Razorpay
+        </p>
+
+        <div class="order-info">
+
+            <div class="info-row">
+
+                <span>
+                    Order ID
+                </span>
+
+                <strong>
+                    #{{ order.id }}
+                </strong>
+
+            </div>
+
+            <div class="info-row">
+
+                <span>
+                    Customer
+                </span>
+
+                <strong>
+                    {{ request.user.username }}
+                </strong>
+
+            </div>
+
+            <div class="info-row">
+
+                <span>
+                    Payment Method
+                </span>
+
+                <strong>
+                    Razorpay
+                </strong>
+
+            </div>
+
+            <hr style="margin: 20px 0; border: none; border-top: 1px solid #e2e8f0;">
+
+            <div class="info-row grand-total">
+
+                <span>
+                    Total Amount
+                </span>
+
+                <span>
+                    ₹ {{ order.total_price }}
+                </span>
+
+            </div>
+
+        </div>
+
+        <button id="pay-btn" class="pay-btn">
+
+            Pay ₹ {{ order.total_price }}
+
+        </button>
+
+        <p class="secure-text">
+            🔒 100% Secure Payment Gateway
+        </p>
+
+    </div>
+
+</div>
+
+
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+<script>
+
+    var options = {
+
+        key: "{{ razorpay_key }}",
+
+        amount: "{{ payment.amount }}",
+
+        currency: "INR",
+
+        name: "MyShop",
+
+        description: "Order Payment",
+
+        order_id: "{{ payment.id }}",
+
+        prefill: {
+
+            name: "{{ request.user.username }}",
+
+            email: "{{ request.user.email }}",
+
+            contact: "9876543210"
+
+        },
+
+        handler: function (response) {
+
+            window.location.href =
+                "/orders/payment-success/{{ order.id }}/";
+
+        },
+
+        theme: {
+            color: "#2563eb"
+        }
+
+    };
+
+    var rzp1 = new Razorpay(options);
+
+    document.getElementById('pay-btn').onclick = function (e) {
+
+        rzp1.open();
+
+        e.preventDefault();
+
+    }
+
+</script>
+
+{% endblock %}

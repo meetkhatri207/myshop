@@ -1,0 +1,192 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: Arial, Helvetica, sans-serif;
+    }
+
+    body {
+        background: #f5f7fb;
+    }
+
+    .register-container {
+        min-height: 90vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+    }
+
+    .register-card {
+        width: 100%;
+        max-width: 500px;
+        background: white;
+        padding: 45px;
+        border-radius: 24px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    }
+
+    .register-title {
+        font-size: 38px;
+        text-align: center;
+        margin-bottom: 10px;
+        color: #0f172a;
+    }
+
+    .register-subtitle {
+        text-align: center;
+        color: #64748b;
+        margin-bottom: 35px;
+    }
+
+    .register-form {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .input-group {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .input-label {
+        font-weight: bold;
+        color: #334155;
+    }
+
+    .input-field {
+        padding: 15px;
+        border: 1px solid #dbe2ea;
+        border-radius: 14px;
+        outline: none;
+        font-size: 15px;
+        transition: 0.3s;
+    }
+
+    .input-field:focus {
+        border-color: #2563eb;
+        box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+    }
+
+    .register-btn {
+        padding: 15px;
+        border: none;
+        background: #2563eb;
+        color: white;
+        border-radius: 14px;
+        cursor: pointer;
+        font-size: 16px;
+        font-weight: bold;
+        transition: 0.3s;
+    }
+
+    .register-btn:hover {
+        background: #1d4ed8;
+    }
+
+    .register-footer {
+        text-align: center;
+        margin-top: 25px;
+        color: #64748b;
+    }
+
+    .login-link {
+        color: #2563eb;
+        text-decoration: none;
+        font-weight: bold;
+    }
+
+    .login-link:hover {
+        text-decoration: underline;
+    }
+
+    @media(max-width: 600px) {
+
+        .register-card {
+            padding: 30px;
+        }
+
+        .register-title {
+            font-size: 32px;
+        }
+
+    }
+</style>
+
+<div class="register-container">
+
+    <div class="register-card">
+
+        <h1 class="register-title">
+            Create Account 🚀
+        </h1>
+
+        <p class="register-subtitle">
+            Register to start shopping
+        </p>
+
+        <form method="POST" class="register-form">
+
+            {% csrf_token %}
+
+
+            <div class="input-group">
+
+                <label class="input-label">
+                    Username
+                </label>
+
+                <input type="text" name="username" placeholder="Enter username" class="input-field">
+
+            </div>
+
+
+            <div class="input-group">
+
+                <label class="input-label">
+                    Email Address
+                </label>
+
+                <input type="email" name="email" placeholder="Enter email address" class="input-field">
+
+            </div>
+
+
+            <div class="input-group">
+
+                <label class="input-label">
+                    Password
+                </label>
+
+                <input type="password" name="password" placeholder="Enter password" class="input-field">
+
+            </div>
+
+            <button type="submit" class="register-btn">
+                Register
+            </button>
+
+        </form>
+
+        <div class="register-footer">
+
+            Already have an account?
+
+            <a href="/users/login/" class="login-link">
+                Login
+            </a>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

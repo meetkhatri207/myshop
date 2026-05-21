@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="order-detail-container">
+
+    <h1>
+        Order #{{ order.id }}
+    </h1>
+
+    <p>
+        Total:
+        ₹ {{ order.total_price }}
+    </p>
+
+    <p>
+        Payment:
+
+        {% if order.payment_status %}
+
+        Paid
+
+        {% else %}
+
+        Pending
+
+        {% endif %}
+
+    </p>
+
+    <hr>
+
+    <h2>
+        Products
+    </h2>
+
+    {% for item in order_items %}
+
+    <div class="order-item">
+
+        {% if product.image %}
+
+        <img src="{{ item.product.image.url }}">
+
+        {% else %}
+
+        <img src="https://via.placeholder.com/300x300?text=No+Image">
+
+        {% endif %}
+
+
+        <h3>
+            {{ item.product.name }}
+        </h3>
+
+        <p>
+            Quantity:
+            {{ item.quantity }}
+        </p>
+
+        <p>
+            Price:
+            ₹ {{ item.price }}
+        </p>
+
+    </div>
+
+    <hr>
+
+    {% endfor %}
+
+</div>
+
+{% endblock %}

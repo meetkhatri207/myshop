@@ -1,0 +1,339 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: Arial, Helvetica, sans-serif;
+    }
+
+    body {
+        background: #f5f7fb;
+    }
+
+    .product-detail-container {
+        max-width: 1200px;
+        margin: 40px auto;
+        padding: 20px;
+    }
+
+    .product-wrapper {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 40px;
+        background: white;
+        padding: 35px;
+        border-radius: 20px;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+    }
+
+    .product-image {
+        width: 100%;
+        height: 500px;
+        object-fit: contain;
+        border-radius: 18px;
+    }
+
+    .product-info h1 {
+        font-size: 42px;
+        color: #0f172a;
+        margin-bottom: 15px;
+    }
+
+    .price {
+        font-size: 32px;
+        color: #2563eb;
+        font-weight: bold;
+        margin-bottom: 20px;
+    }
+
+    .rating-box {
+        background: #eff6ff;
+        padding: 14px 18px;
+        border-radius: 12px;
+        width: fit-content;
+        margin-bottom: 25px;
+        color: #1e40af;
+        font-weight: bold;
+    }
+
+    .description {
+        color: #475569;
+        line-height: 1.8;
+        margin-bottom: 30px;
+        font-size: 16px;
+    }
+
+    .buttons {
+        display: flex;
+        gap: 15px;
+        flex-wrap: wrap;
+    }
+
+    .btn {
+        padding: 14px 22px;
+        border-radius: 12px;
+        text-decoration: none;
+        font-weight: bold;
+        transition: 0.3s;
+        display: inline-block;
+    }
+
+    .cart-btn {
+        background: #2563eb;
+        color: white;
+    }
+
+    .cart-btn:hover {
+        background: #1d4ed8;
+    }
+
+    .wishlist-btn {
+        background: #fee2e2;
+        color: #dc2626;
+    }
+
+    .wishlist-btn:hover {
+        background: #fecaca;
+    }
+
+    .out-stock {
+        color: red;
+        font-weight: bold;
+        margin-top: 15px;
+    }
+
+    .reviews-section {
+        margin-top: 40px;
+        background: white;
+        padding: 35px;
+        border-radius: 20px;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+    }
+
+    .reviews-title {
+        font-size: 30px;
+        margin-bottom: 25px;
+        color: #0f172a;
+    }
+
+    .review-card {
+        border: 1px solid #e2e8f0;
+        padding: 20px;
+        border-radius: 16px;
+        margin-bottom: 20px;
+        transition: 0.3s;
+    }
+
+    .review-card:hover {
+        box-shadow: 0 5px 18px rgba(0, 0, 0, 0.07);
+    }
+
+    .review-user {
+        font-size: 18px;
+        margin-bottom: 10px;
+        color: #0f172a;
+    }
+
+    .review-rating {
+        color: #f59e0b;
+        margin-bottom: 10px;
+        font-weight: bold;
+    }
+
+    .review-comment {
+        color: #475569;
+        line-height: 1.7;
+    }
+
+    .review-form {
+        margin-top: 35px;
+    }
+
+    .form-title {
+        margin-bottom: 20px;
+        color: #0f172a;
+    }
+
+    .input-field,
+    .textarea-field {
+        width: 100%;
+        padding: 14px;
+        border: 1px solid #dbe2ea;
+        border-radius: 12px;
+        margin-bottom: 18px;
+        outline: none;
+        font-size: 15px;
+    }
+
+    .textarea-field {
+        min-height: 120px;
+        resize: vertical;
+    }
+
+    .submit-btn {
+        padding: 14px 25px;
+        border: none;
+        background: #2563eb;
+        color: white;
+        border-radius: 12px;
+        cursor: pointer;
+        font-weight: bold;
+        transition: 0.3s;
+    }
+
+    .submit-btn:hover {
+        background: #1d4ed8;
+    }
+
+    .login-message {
+        margin-top: 20px;
+        color: #64748b;
+    }
+
+    @media(max-width: 900px) {
+
+        .product-wrapper {
+            grid-template-columns: 1fr;
+        }
+
+        .product-image {
+            height: 350px;
+        }
+
+        .product-info h1 {
+            font-size: 32px;
+        }
+
+    }
+</style>
+
+<div class="product-detail-container">
+
+    <div class="product-wrapper">
+
+        <div>
+            {% if product.image %}
+
+            <img src="{{ product.image.url }}" class="product-image">
+
+            {% else %}
+
+            <img src="https://via.placeholder.com/300x300?text=No+Image">
+
+            {% endif %}
+        </div>
+
+        <div class="product-info">
+
+            <h1>
+                {{ product.name }}
+            </h1>
+
+            <p class="price">
+                ₹ {{ product.price }}
+            </p>
+
+            <div class="rating-box">
+                ⭐ Average Rating:
+                {{ avg_rating|default:"0" }}/5
+            </div>
+
+            <p class="description">
+                {{ product.description }}
+            </p>
+
+            <div class="buttons">
+
+                {% if product.stock > 0 %}
+
+                <a href="/cart/add/{{ product.id }}/" class="btn cart-btn">
+                    Add To Cart
+                </a>
+
+                {% else %}
+
+                <p class="out-stock">
+                    Currently Product Out Of Stock!!
+                </p>
+
+                {% endif %}
+
+                <a href="/wishlist/add/{{ product.id }}/" class="btn wishlist-btn">
+                    ❤️ Wishlist
+                </a>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="reviews-section">
+
+        <h2 class="reviews-title">
+            Customer Reviews
+        </h2>
+
+        {% for review in reviews %}
+
+        <div class="review-card">
+
+            <h4 class="review-user">
+                {{ review.user.username }}
+            </h4>
+
+            <p class="review-rating">
+                ⭐ {{ review.rating }}/5
+            </p>
+
+            <p class="review-comment">
+                {{ review.comment }}
+            </p>
+
+        </div>
+
+        {% empty %}
+
+        <p>
+            No reviews yet
+        </p>
+
+        {% endfor %}
+
+        {% if user.is_authenticated %}
+
+        <form method="POST" action="/reviews/add/{{ product.id }}/" class="review-form">
+
+            {% csrf_token %}
+
+            <h3 class="form-title">
+                Add Review
+            </h3>
+
+            <input type="number" name="rating" min="1" max="5" placeholder="Enter Rating (1-5)" class="input-field">
+
+            <textarea name="comment" placeholder="Write your review..." class="textarea-field"></textarea>
+
+            <button type="submit" class="submit-btn">
+                Submit Review
+            </button>
+
+        </form>
+
+        {% else %}
+
+        <p class="login-message">
+            Please login to review this product.
+        </p>
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+{% endblock %}

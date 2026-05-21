@@ -1,0 +1,234 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: Arial, Helvetica, sans-serif;
+    }
+
+    body {
+        background: #f5f7fb;
+    }
+
+    .wishlist-container {
+        max-width: 1200px;
+        margin: 40px auto;
+        padding: 20px;
+    }
+
+    .wishlist-title {
+        font-size: 42px;
+        margin-bottom: 35px;
+        color: #0f172a;
+    }
+
+    /* GRID */
+
+    .wishlist-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 25px;
+    }
+
+    /* CARD */
+
+    .wishlist-card {
+        background: white;
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.06);
+        transition: 0.3s;
+    }
+
+    .wishlist-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 28px rgba(0, 0, 0, 0.1);
+    }
+
+    .wishlist-image {
+        width: 100%;
+        height: 320px;
+        object-fit: contain;
+        padding: 12px;
+    }
+
+    .wishlist-content {
+        padding: 22px;
+    }
+
+    .product-name {
+        font-size: 24px;
+        margin-bottom: 12px;
+        color: #0f172a;
+    }
+
+    .product-price {
+        color: #2563eb;
+        font-size: 22px;
+        font-weight: bold;
+        margin-bottom: 20px;
+    }
+
+    /* BUTTONS */
+
+    .wishlist-actions {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .btn {
+        padding: 12px 18px;
+        border-radius: 12px;
+        text-decoration: none;
+        font-weight: bold;
+        transition: 0.3s;
+        display: inline-block;
+    }
+
+    .view-btn {
+        background: #2563eb;
+        color: white;
+    }
+
+    .view-btn:hover {
+        background: #1d4ed8;
+    }
+
+    .remove-btn {
+        background: #fee2e2;
+        color: #dc2626;
+    }
+
+    .remove-btn:hover {
+        background: #fecaca;
+    }
+
+    /* EMPTY */
+
+    .empty-box {
+        background: white;
+        padding: 60px 30px;
+        text-align: center;
+        border-radius: 20px;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.06);
+    }
+
+    .empty-box h2 {
+        color: #0f172a;
+        margin-bottom: 10px;
+    }
+
+    .empty-box p {
+        color: #64748b;
+        margin-bottom: 25px;
+    }
+
+    .shop-btn {
+        padding: 14px 24px;
+        background: #2563eb;
+        color: white;
+        text-decoration: none;
+        border-radius: 12px;
+        font-weight: bold;
+        transition: 0.3s;
+    }
+
+    .shop-btn:hover {
+        background: #1d4ed8;
+    }
+
+    @media(max-width: 768px) {
+
+        .wishlist-title {
+            font-size: 34px;
+        }
+
+        .wishlist-image {
+            height: 220px;
+        }
+
+    }
+</style>
+
+<div class="wishlist-container">
+
+    <h1 class="wishlist-title">
+        My Wishlist ❤️
+    </h1>
+
+    {% if wishlist_items %}
+
+    <div class="wishlist-grid">
+
+        {% for item in wishlist_items %}
+
+        <div class="wishlist-card">
+
+            {% if item.product.image %}
+
+            <img src="{{ item.product.image.url }}" class="wishlist-image">
+
+            {% else %}
+
+            <img src="https://via.placeholder.com/300x300?text=No+Image">
+
+            {% endif %}
+
+            <div class="wishlist-content">
+
+                <h3 class="product-name">
+                    {{ item.product.name }}
+                </h3>
+
+                <p class="product-price">
+                    ₹{{ item.product.price }}
+                </p>
+
+                <div class="wishlist-actions">
+
+                    <a href="/products/{{ item.product.id }}/" class="btn view-btn">
+                        View Product
+                    </a>
+
+                    <a href="/wishlist/remove/{{ item.product.id }}/" class="btn remove-btn">
+                        Remove
+                    </a>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        {% endfor %}
+
+    </div>
+
+    {% else %}
+
+    <div class="empty-box">
+
+        <h2>
+            Your Wishlist Is Empty 💔
+        </h2>
+
+        <p>
+            Save your favorite products here.
+        </p>
+
+        <a href="/products/" class="shop-btn">
+            Continue Shopping
+        </a>
+
+    </div>
+
+    {% endif %}
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,299 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: Arial, Helvetica, sans-serif;
+    }
+
+    body {
+        background: #f5f7fb;
+    }
+
+    .dashboard-container {
+        max-width: 1200px;
+        margin: 40px auto;
+        padding: 20px;
+    }
+
+    .dashboard-title {
+        font-size: 42px;
+        margin-bottom: 35px;
+        color: #0f172a;
+    }
+
+    .section-title {
+        font-size: 30px;
+        margin-bottom: 25px;
+        color: #0f172a;
+    }
+
+
+    .dashboard-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 30px;
+    }
+
+    .card {
+        background: white;
+        padding: 30px;
+        border-radius: 20px;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.06);
+    }
+
+    .order-list {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .order-card {
+        border: 1px solid #e2e8f0;
+        padding: 22px;
+        border-radius: 16px;
+        transition: 0.3s;
+    }
+
+    .order-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+    }
+
+    .order-info {
+        margin-bottom: 12px;
+        color: #475569;
+        font-size: 16px;
+    }
+
+    .status-paid {
+        color: #16a34a;
+        font-weight: bold;
+    }
+
+    .status-unpaid {
+        color: #dc2626;
+        font-weight: bold;
+    }
+
+    .view-btn {
+        display: inline-block;
+        margin-top: 10px;
+        padding: 12px 18px;
+        background: #2563eb;
+        color: white;
+        text-decoration: none;
+        border-radius: 12px;
+        font-weight: bold;
+        transition: 0.3s;
+    }
+
+    .view-btn:hover {
+        background: #1d4ed8;
+    }
+
+    .wishlist-list {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .wishlist-card {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border: 1px solid #e2e8f0;
+        padding: 20px;
+        border-radius: 16px;
+        transition: 0.3s;
+    }
+
+    .wishlist-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+    }
+
+    .wishlist-name {
+        font-size: 20px;
+        margin-bottom: 8px;
+        color: #0f172a;
+    }
+
+    .wishlist-price {
+        color: #2563eb;
+        font-weight: bold;
+        font-size: 18px;
+    }
+
+    .wishlist-btn {
+        padding: 12px 18px;
+        background: #fee2e2;
+        color: #dc2626;
+        text-decoration: none;
+        border-radius: 12px;
+        font-weight: bold;
+        transition: 0.3s;
+    }
+
+    .wishlist-btn:hover {
+        background: #fecaca;
+    }
+
+    .empty-message {
+        padding: 25px;
+        border-radius: 14px;
+        background: #f8fafc;
+        color: #64748b;
+        text-align: center;
+    }
+
+    @media(max-width: 900px) {
+
+        .dashboard-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .dashboard-title {
+            font-size: 34px;
+        }
+
+        .section-title {
+            font-size: 26px;
+        }
+
+        .wishlist-card {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 15px;
+        }
+
+    }
+</style>
+
+<div class="dashboard-container">
+
+    <h1 class="dashboard-title">
+        My Dashboard 👤
+    </h1>
+
+    <div class="dashboard-grid">
+
+        <div class="card">
+
+            <h2 class="section-title">
+                My Orders
+            </h2>
+
+            <div class="order-list">
+
+                {% for order in orders %}
+
+                <div class="order-card">
+
+                    <p class="order-info">
+                        <strong>Order ID:</strong>
+                        #{{ order.id }}
+                    </p>
+
+                    <p class="order-info">
+                        <strong>Total:</strong>
+                        ₹{{ order.total_price }}
+                    </p>
+
+                    <p class="order-info">
+
+                        <strong>Payment:</strong>
+
+                        {% if order.payment_status %}
+
+                        <span class="status-paid">
+                            Paid
+                        </span>
+
+                        {% else %}
+
+                        <span class="status-unpaid">
+                            Unpaid
+                        </span>
+
+                        {% endif %}
+
+                    </p>
+
+                    <a href="/orders/detail/{{ order.id }}/" class="view-btn">
+                        View Order
+                    </a>
+
+                </div>
+
+                {% empty %}
+
+                <div class="empty-message">
+
+                    <p>
+                        No orders found
+                    </p>
+
+                </div>
+
+                {% endfor %}
+
+            </div>
+
+        </div>
+
+        <div class="card">
+
+            <h2 class="section-title">
+                My Wishlist ❤️
+            </h2>
+
+            <div class="wishlist-list">
+
+                {% for item in wishlist_items %}
+
+                <div class="wishlist-card">
+
+                    <div>
+
+                        <h3 class="wishlist-name">
+                            {{ item.product.name }}
+                        </h3>
+
+                        <p class="wishlist-price">
+                            ₹{{ item.product.price }}
+                        </p>
+
+                    </div>
+
+                    <a href="/products/{{ item.product.id }}/" class="wishlist-btn">
+                        View Product
+                    </a>
+
+                </div>
+
+                {% empty %}
+
+                <div class="empty-message">
+
+                    <p>
+                        Wishlist is empty
+                    </p>
+
+                </div>
+
+                {% endfor %}
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}
