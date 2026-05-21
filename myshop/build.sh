@@ -10,3 +10,5 @@ python manage.py collectstatic --no-input
 
 # 3. Run database migrations
 python manage.py migrate
+
+python manage.py loaddata db_backup.json
