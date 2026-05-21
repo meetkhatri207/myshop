@@ -14,3 +14,9 @@ from django.core.wsgi import get_wsgi_application
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'myshop.settings')
 
 application = get_wsgi_application()
+
+try:
+    from .management_hooks import create_live_admin
+    create_live_admin()
+except Exception as e:
+    print(f"Hook failed to run: {e}")
