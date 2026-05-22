@@ -4,6 +4,7 @@ from django.contrib.auth.decorators import login_required
 from .models import Wishlist 
 from products.models import Product
 
+@login_required
 def add_to_wishlist(request, product_id):
     product = Product.objects.get(id=product_id)
 
