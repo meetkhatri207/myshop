@@ -51,3 +51,7 @@ def product_detail(request, id):
         'reviews' : reviews,
         'avg_rating': avg_rating['avg']
     })
+
+def home(request):
+
+    return render(request, 'products/home.html')
