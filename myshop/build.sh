@@ -11,4 +11,6 @@ python manage.py collectstatic --no-input
 # 3. Run database migrations
 python manage.py migrate
 
+cp -r media/ staticfiles/ || true
+
 python manage.py loaddata db_backup.json

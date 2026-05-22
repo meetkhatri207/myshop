@@ -3,15 +3,12 @@ from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
 SECRET_KEY = 'django-insecure-7#10_(9j%&!_qes953y9mkwi6(wzkga8h$u&)v&$v088=c+&65'
 
 DEBUG = False
 
 ALLOWED_HOSTS = ['myshop-q5lf.onrender.com', 'localhost', '127.0.0.1']
 
-
-# Application definition
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -41,11 +38,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-RAZORPAY_KEY_ID = 'rzp_test_SrX5a3Hkw6xkYt'
-RAZORPAY_KEY_SECRET = 'eAWPCELyiAK70plzrGgOaS1d'
-
 ROOT_URLCONF = 'myshop.urls'
-
 LOGIN_URL = '/users/login/'
 
 TEMPLATES = [
@@ -66,7 +59,6 @@ TEMPLATES = [
 WSGI_APPLICATION = 'myshop.wsgi.application'
 
 
-# Database
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -75,7 +67,6 @@ DATABASES = {
 }
 
 
-# Password validation
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
     {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
@@ -84,15 +75,13 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 
-# Internationalization
 LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
 
-
-
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
 
 STATIC_URL = 'static/'
 
@@ -102,8 +91,19 @@ STATICFILES_DIRS = [
 
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-
+STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage", 
+    },
+}
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+
+
+# Razorpay Integration
+RAZORPAY_KEY_ID = 'rzp_test_SrX5a3Hkw6xkYt'
+RAZORPAY_KEY_SECRET = 'eAWPCELyiAK70plzrGgOaS1d'
