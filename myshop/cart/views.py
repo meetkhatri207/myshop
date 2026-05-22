@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from products.models import Product
 from django.contrib.auth.decorators import login_required
-from orders.models import Order, OrderItem
+from orders.models import Order, OrderItem, ShippingAddress
 from products.models import Product
 from django.http import HttpResponse
 
@@ -119,6 +119,14 @@ def checkout(request):
 
     cart = request.session.get('cart', {})
 
+    address_id = request.session.get(
+        'shipping_address_id'
+    )
+
+    shipping_address = ShippingAddress.objects.get(
+        id=address_id
+    )
+
     if not cart:
 
         return HttpResponse(
@@ -162,7 +170,8 @@ def checkout(request):
     order = Order.objects.create(
         user=request.user,
         total_price=total,
-        payment_status=True
+        payment_status=True,
+        shipping_address=shipping_address
     )
 
     for product_id, quantity in cart.items():
@@ -187,6 +196,8 @@ def checkout(request):
     if 'coupon' in request.session:
 
         del request.session['coupon']
+
+        
 
     return redirect(
         f'/orders/payment/{order.id}/'

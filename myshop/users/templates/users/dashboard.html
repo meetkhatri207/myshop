@@ -3,98 +3,196 @@
 {% block content %}
 
 <style>
-    * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-        font-family: Arial, Helvetica, sans-serif;
-    }
-
-    body {
-        background: #f5f7fb;
-    }
-
     .dashboard-container {
-        max-width: 1200px;
-        margin: 40px auto;
-        padding: 20px;
+        max-width: 1300px;
+        margin: auto;
     }
 
-    .dashboard-title {
-        font-size: 42px;
+    /* HERO */
+
+    .dashboard-hero {
+        background: linear-gradient(135deg, #2563eb, #1d4ed8);
+        border-radius: 28px;
+        padding: 45px;
+        color: white;
         margin-bottom: 35px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .dashboard-hero::before {
+        content: '';
+        position: absolute;
+        width: 300px;
+        height: 300px;
+        background: rgba(255, 255, 255, 0.08);
+        border-radius: 50%;
+        top: -120px;
+        right: -100px;
+    }
+
+    .dashboard-hero h1 {
+        font-size: 42px;
+        margin-bottom: 12px;
+        position: relative;
+        z-index: 2;
+    }
+
+    .dashboard-hero p {
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 17px;
+        position: relative;
+        z-index: 2;
+    }
+
+    /* STATS */
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 22px;
+        margin-bottom: 35px;
+    }
+
+    .stat-card {
+        background: white;
+        padding: 28px;
+        border-radius: 22px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
+        transition: 0.3s;
+        border: 1px solid #e2e8f0;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-5px);
+    }
+
+    .stat-label {
+        color: #64748b;
+        font-size: 15px;
+        margin-bottom: 10px;
+    }
+
+    .stat-value {
+        font-size: 34px;
+        font-weight: 800;
         color: #0f172a;
     }
 
-    .section-title {
-        font-size: 30px;
-        margin-bottom: 25px;
-        color: #0f172a;
-    }
-
+    /* GRID */
 
     .dashboard-grid {
         display: grid;
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: 1.2fr 0.8fr;
         gap: 30px;
     }
 
-    .card {
+    .dashboard-card {
         background: white;
+        border-radius: 24px;
         padding: 30px;
-        border-radius: 20px;
-        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.06);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
+        border: 1px solid #e2e8f0;
     }
+
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 25px;
+    }
+
+    .section-title {
+        font-size: 28px;
+        color: #0f172a;
+    }
+
+    .section-link {
+        color: #2563eb;
+        font-weight: 700;
+        font-size: 15px;
+    }
+
+    /* ORDERS */
 
     .order-list {
         display: flex;
         flex-direction: column;
-        gap: 20px;
+        gap: 18px;
     }
 
     .order-card {
         border: 1px solid #e2e8f0;
+        border-radius: 18px;
         padding: 22px;
-        border-radius: 16px;
         transition: 0.3s;
     }
 
     .order-card:hover {
         transform: translateY(-3px);
-        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+        box-shadow: 0 10px 24px rgba(0, 0, 0, 0.07);
     }
 
-    .order-info {
-        margin-bottom: 12px;
-        color: #475569;
-        font-size: 16px;
+    .order-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+        flex-wrap: wrap;
+        gap: 12px;
     }
 
-    .status-paid {
-        color: #16a34a;
-        font-weight: bold;
+    .order-id {
+        font-size: 20px;
+        font-weight: 800;
+        color: #0f172a;
     }
 
-    .status-unpaid {
+    .payment-badge {
+        padding: 8px 14px;
+        border-radius: 999px;
+        font-size: 13px;
+        font-weight: 700;
+    }
+
+    .paid {
+        background: #dcfce7;
+        color: #15803d;
+    }
+
+    .unpaid {
+        background: #fee2e2;
         color: #dc2626;
-        font-weight: bold;
+    }
+
+    .order-details {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+
+    .order-price {
+        font-size: 28px;
+        font-weight: 800;
+        color: #2563eb;
     }
 
     .view-btn {
-        display: inline-block;
-        margin-top: 10px;
         padding: 12px 18px;
         background: #2563eb;
         color: white;
-        text-decoration: none;
         border-radius: 12px;
-        font-weight: bold;
+        font-weight: 700;
         transition: 0.3s;
     }
 
     .view-btn:hover {
         background: #1d4ed8;
     }
+
+    /* WISHLIST */
 
     .wishlist-list {
         display: flex;
@@ -104,71 +202,137 @@
 
     .wishlist-card {
         display: flex;
-        justify-content: space-between;
+        gap: 18px;
         align-items: center;
         border: 1px solid #e2e8f0;
-        padding: 20px;
-        border-radius: 16px;
+        border-radius: 18px;
+        padding: 18px;
         transition: 0.3s;
     }
 
     .wishlist-card:hover {
         transform: translateY(-3px);
-        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+        box-shadow: 0 10px 24px rgba(0, 0, 0, 0.07);
+    }
+
+    .wishlist-image {
+        width: 90px;
+        height: 90px;
+        object-fit: contain;
+        background: #f8fafc;
+        padding: 10px;
+        border-radius: 14px;
+    }
+
+    .wishlist-info {
+        flex: 1;
     }
 
     .wishlist-name {
-        font-size: 20px;
-        margin-bottom: 8px;
+        font-size: 18px;
+        font-weight: 700;
         color: #0f172a;
+        margin-bottom: 8px;
     }
 
     .wishlist-price {
         color: #2563eb;
-        font-weight: bold;
-        font-size: 18px;
+        font-weight: 800;
+        font-size: 20px;
+        margin-bottom: 12px;
+    }
+
+    .wishlist-actions {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
     }
 
     .wishlist-btn {
-        padding: 12px 18px;
-        background: #fee2e2;
-        color: #dc2626;
-        text-decoration: none;
+        padding: 10px 16px;
         border-radius: 12px;
-        font-weight: bold;
+        font-size: 14px;
+        font-weight: 700;
         transition: 0.3s;
     }
 
-    .wishlist-btn:hover {
+    .product-btn {
+        background: #2563eb;
+        color: white;
+    }
+
+    .product-btn:hover {
+        background: #1d4ed8;
+    }
+
+    .remove-btn {
+        background: #fee2e2;
+        color: #dc2626;
+    }
+
+    .remove-btn:hover {
         background: #fecaca;
     }
 
-    .empty-message {
-        padding: 25px;
-        border-radius: 14px;
-        background: #f8fafc;
-        color: #64748b;
+    /* EMPTY */
+
+    .empty-box {
+        padding: 40px;
         text-align: center;
+        background: #f8fafc;
+        border-radius: 18px;
+        color: #64748b;
     }
 
-    @media(max-width: 900px) {
+    /* MOBILE */
+
+    @media(max-width: 1100px) {
+
+        .stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
 
         .dashboard-grid {
             grid-template-columns: 1fr;
         }
 
-        .dashboard-title {
-            font-size: 34px;
+    }
+
+    @media(max-width: 768px) {
+
+        .dashboard-hero {
+            padding: 30px;
+        }
+
+        .dashboard-hero h1 {
+            font-size: 32px;
+        }
+
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .dashboard-card {
+            padding: 22px;
         }
 
         .section-title {
-            font-size: 26px;
+            font-size: 24px;
         }
 
         .wishlist-card {
             flex-direction: column;
             align-items: flex-start;
-            gap: 15px;
+        }
+
+        .wishlist-image {
+            width: 100%;
+            height: 220px;
+        }
+
+        .order-details {
+            align-items: flex-start;
+            flex-direction: column;
         }
 
     }
@@ -176,17 +340,95 @@
 
 <div class="dashboard-container">
 
-    <h1 class="dashboard-title">
-        My Dashboard 👤
-    </h1>
+    <!-- HERO -->
+
+    <div class="dashboard-hero">
+
+        <h1>
+            Welcome Back 👋
+        </h1>
+
+        <p>
+            Manage your orders, wishlist and shopping activity easily.
+        </p>
+
+    </div>
+
+    <!-- STATS -->
+
+    <div class="stats-grid">
+
+        <div class="stat-card">
+
+            <p class="stat-label">
+                Total Orders
+            </p>
+
+            <h2 class="stat-value">
+                {{ orders|length }}
+            </h2>
+
+        </div>
+
+        <div class="stat-card">
+
+            <p class="stat-label">
+                Wishlist Items
+            </p>
+
+            <h2 class="stat-value">
+                {{ wishlist_items|length }}
+            </h2>
+
+        </div>
+
+        <div class="stat-card">
+
+            <p class="stat-label">
+                Paid Orders
+            </p>
+
+            <h2 class="stat-value">
+
+                {% with paid_count=0 %}
+
+                {{ orders|length }}
+
+                {% endwith %}
+
+            </h2>
+
+        </div>
+
+        <div class="stat-card">
+
+            <p class="stat-label">
+                Account Status
+            </p>
+
+            <h2 class="stat-value">
+                Active
+            </h2>
+
+        </div>
+
+    </div>
+
+    <!-- GRID -->
 
     <div class="dashboard-grid">
 
-        <div class="card">
+        <!-- ORDERS -->
 
-            <h2 class="section-title">
-                My Orders
-            </h2>
+        <div class="dashboard-card">
+
+            <div class="section-header">
+
+                <h2 class="section-title">
+                    My Orders
+                </h2>
+
+            </div>
 
             <div class="order-list">
 
@@ -194,48 +436,60 @@
 
                 <div class="order-card">
 
-                    <p class="order-info">
-                        <strong>Order ID:</strong>
-                        #{{ order.id }}
-                    </p>
+                    <div class="order-top">
 
-                    <p class="order-info">
-                        <strong>Total:</strong>
-                        ₹{{ order.total_price }}
-                    </p>
-
-                    <p class="order-info">
-
-                        <strong>Payment:</strong>
+                        <h3 class="order-id">
+                            Order #{{ order.id }}
+                        </h3>
 
                         {% if order.payment_status %}
 
-                        <span class="status-paid">
+                        <span class="payment-badge paid">
                             Paid
                         </span>
 
                         {% else %}
 
-                        <span class="status-unpaid">
-                            Unpaid
+                        <span class="payment-badge unpaid">
+                            Pending
                         </span>
 
                         {% endif %}
 
-                    </p>
+                    </div>
 
-                    <a href="/orders/detail/{{ order.id }}/" class="view-btn">
-                        View Order
-                    </a>
+                    <div class="order-details">
+
+                        <div>
+
+                            <p style="color:#64748b; margin-bottom:6px;">
+                                Total Amount
+                            </p>
+
+                            <h2 class="order-price">
+                                ₹{{ order.total_price }}
+                            </h2>
+
+                        </div>
+
+                        <a href="/orders/detail/{{ order.id }}/" class="view-btn">
+                            View Details
+                        </a>
+
+                    </div>
 
                 </div>
 
                 {% empty %}
 
-                <div class="empty-message">
+                <div class="empty-box">
+
+                    <h3 style="margin-bottom:10px;">
+                        No Orders Yet
+                    </h3>
 
                     <p>
-                        No orders found
+                        Start shopping and your orders will appear here.
                     </p>
 
                 </div>
@@ -246,11 +500,17 @@
 
         </div>
 
-        <div class="card">
+        <!-- WISHLIST -->
 
-            <h2 class="section-title">
-                My Wishlist ❤️
-            </h2>
+        <div class="dashboard-card">
+
+            <div class="section-header">
+
+                <h2 class="section-title">
+                    Wishlist ❤️
+                </h2>
+
+            </div>
 
             <div class="wishlist-list">
 
@@ -258,7 +518,17 @@
 
                 <div class="wishlist-card">
 
-                    <div>
+                    {% if item.product.image %}
+
+                    <img src="{{ item.product.image.url }}" class="wishlist-image">
+
+                    {% else %}
+
+                    <img src="https://via.placeholder.com/300x300?text=No+Image" class="wishlist-image">
+
+                    {% endif %}
+
+                    <div class="wishlist-info">
 
                         <h3 class="wishlist-name">
                             {{ item.product.name }}
@@ -268,20 +538,36 @@
                             ₹{{ item.product.price }}
                         </p>
 
-                    </div>
+                        <div class="wishlist-actions">
 
-                    <a href="/products/{{ item.product.id }}/" class="wishlist-btn">
-                        View Product
-                    </a>
+                            <a href="/products/{{ item.product.id }}/" class="wishlist-btn product-btn">
+
+                                View Product
+
+                            </a>
+
+                            <a href="/wishlist/remove/{{ item.product.id }}/" class="wishlist-btn remove-btn">
+
+                                Remove
+
+                            </a>
+
+                        </div>
+
+                    </div>
 
                 </div>
 
                 {% empty %}
 
-                <div class="empty-message">
+                <div class="empty-box">
+
+                    <h3 style="margin-bottom:10px;">
+                        Wishlist Empty
+                    </h3>
 
                     <p>
-                        Wishlist is empty
+                        Save products you love to your wishlist.
                     </p>
 
                 </div>

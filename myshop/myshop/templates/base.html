@@ -39,11 +39,10 @@
             text-decoration: none;
         }
 
-        /* NAVBAR */
 
         .navbar {
             width: 100%;
-            background: rgba(255, 255, 255, 0.9);
+            background: rgba(255, 255, 255, 0.92);
             backdrop-filter: blur(12px);
             border-bottom: 1px solid #e2e8f0;
             position: sticky;
@@ -60,7 +59,6 @@
             justify-content: space-between;
         }
 
-        /* LOGO */
 
         .logo a {
             font-size: 30px;
@@ -73,7 +71,6 @@
             color: #2563eb;
         }
 
-        /* LINKS */
 
         .nav-links {
             display: flex;
@@ -107,7 +104,6 @@
             width: 100%;
         }
 
-        /* BUTTONS */
 
         .btn {
             padding: 12px 20px;
@@ -134,7 +130,6 @@
             background: #1d4ed8;
         }
 
-        /* USER DROPDOWN */
 
         .user-dropdown {
             position: relative;
@@ -233,16 +228,30 @@
             color: #dc2626;
         }
 
-        /* MAIN */
+
+        .mobile-toggle {
+            display: none;
+            flex-direction: column;
+            gap: 5px;
+            cursor: pointer;
+        }
+
+        .mobile-toggle span {
+            width: 28px;
+            height: 3px;
+            background: #0f172a;
+            border-radius: 10px;
+            transition: 0.3s;
+        }
+
 
         .container {
             max-width: 1300px;
             margin: auto;
-            padding: 40px 24px;
+            /* padding: 40px 24px; */
             min-height: 80vh;
         }
 
-        /* FOOTER */
 
         .footer {
             background: #0f172a;
@@ -280,22 +289,57 @@
             color: white;
         }
 
-        /* MOBILE */
 
         @media(max-width: 900px) {
 
             .navbar-container {
-                flex-direction: column;
-                gap: 20px;
+                flex-wrap: wrap;
+            }
+
+            .mobile-toggle {
+                display: flex;
             }
 
             .nav-links {
-                flex-wrap: wrap;
-                justify-content: center;
+                width: 100%;
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 16px;
+                padding-top: 20px;
+                display: none;
+            }
+
+            .nav-links.active {
+                display: flex;
+            }
+
+            .nav-link,
+            .btn,
+            .user-dropdown {
+                width: 100%;
+            }
+
+            .btn {
+                text-align: center;
+            }
+
+            .user-btn {
+                width: 100%;
+                justify-content: space-between;
             }
 
             .dropdown-menu {
-                right: -40px;
+                position: static;
+                width: 100%;
+                opacity: 1;
+                visibility: visible;
+                transform: none;
+                display: none;
+                margin-top: 10px;
+            }
+
+            .user-dropdown.active .dropdown-menu {
+                display: block;
             }
 
         }
@@ -310,16 +354,27 @@
 
         <div class="navbar-container">
 
-            <div class="logo">
+            <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
 
-                <a href="/">
-                    My<span>Shop</span>
-                </a>
+                <div class="logo">
 
+                    <a href="/">
+                        My<span>Shop</span>
+                    </a>
+
+                </div>
+
+
+                <div class="mobile-toggle" id="mobile-toggle">
+
+                    <span></span>
+                    <span></span>
+                    <span></span>
+
+                </div>
             </div>
 
-
-            <div class="nav-links">
+            <div class="nav-links" id="nav-links">
 
                 <a href="/products/" class="nav-link">
                     Products
@@ -335,10 +390,9 @@
 
                 {% if user.is_authenticated %}
 
+                <div class="user-dropdown" id="user-dropdown">
 
-                <div class="user-dropdown">
-
-                    <button class="user-btn">
+                    <button class="user-btn" id="user-btn">
 
                         👋 Hello, {{ user.username }}
 
@@ -367,18 +421,6 @@
                             👤 My Dashboard
 
                         </a>
-
-                        <!-- <a href="/wishlist/" class="dropdown-item">
-
-                            ❤️ My Wishlist
-
-                        </a>
-
-                        <a href="/cart/" class="dropdown-item">
-
-                            🛒 My Cart
-
-                        </a> -->
 
                         {% if user.is_staff %}
 
@@ -418,6 +460,7 @@
 
     </nav>
 
+    <!-- MAIN -->
 
     <main class="container">
 
@@ -426,6 +469,7 @@
 
     </main>
 
+    <!-- FOOTER -->
 
     <footer class="footer">
 
@@ -466,6 +510,41 @@
         </div>
 
     </footer>
+
+
+    <script>
+
+        const mobileToggle = document.getElementById('mobile-toggle');
+
+        const navLinks = document.getElementById('nav-links');
+
+        mobileToggle.addEventListener('click', () => {
+
+            navLinks.classList.toggle('active');
+
+        });
+
+        // MOBILE USER DROPDOWN
+
+        const userBtn = document.getElementById('user-btn');
+
+        const userDropdown = document.getElementById('user-dropdown');
+
+        if (userBtn) {
+
+            userBtn.addEventListener('click', () => {
+
+                if (window.innerWidth <= 900) {
+
+                    userDropdown.classList.toggle('active');
+
+                }
+
+            });
+
+        }
+
+    </script>
 
 </body>
 

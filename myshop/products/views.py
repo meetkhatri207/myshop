@@ -54,4 +54,8 @@ def product_detail(request, id):
 
 def home(request):
 
-    return render(request, 'products/home.html')
+    category = Category.objects.all()
+
+    return render(request, 'products/home.html', {
+        'category': category
+    })

@@ -144,6 +144,12 @@
 
     @media(max-width: 768px) {
 
+        .wishlist-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 25px;
+        }
+
         .wishlist-title {
             font-size: 34px;
         }
@@ -152,6 +158,12 @@
             height: 220px;
         }
 
+    }
+
+    @media(max-width: 368px) {
+        .wishlist-grid {
+            grid-template-columns: repeat(1, 1fr);
+        }
     }
 </style>
 

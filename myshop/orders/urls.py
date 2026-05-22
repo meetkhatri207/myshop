@@ -19,5 +19,13 @@ path(
     views.payment_page
 ),
 path('my-orders/', views.my_orders),
-path('<int:order_id>/', views.order_detail)
+path('<int:order_id>/', views.order_detail),
+path(
+    'shipping-address/',
+    views.shipping_address
+),
+path(
+    'invoice/<int:order_id>/',
+    views.invoice_pdf
+),
 ]

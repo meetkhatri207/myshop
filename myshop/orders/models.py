@@ -2,8 +2,58 @@ from django.db import models
 from django.contrib.auth.models import User
 from products.models import Product
 
+class ShippingAddress(models.Model):
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE
+    )
+
+    full_name = models.CharField(
+        max_length=255
+    )
+
+    phone = models.CharField(
+        max_length=20
+    )
+
+    address = models.TextField()
+
+    city = models.CharField(
+        max_length=100
+    )
+
+    state = models.CharField(
+        max_length=100
+    )
+
+    pincode = models.CharField(
+        max_length=20
+    )
+
+    created_at = models.DateTimeField(
+        auto_now_add=True
+    )
+
+    def __str__(self):
+
+        return self.full_name
+
 
 class Order(models.Model):
+
+    STATUS_CHOICES = [
+
+    ('Pending', 'Pending'),
+
+    ('Processing', 'Processing'),
+
+    ('Shipped', 'Shipped'),
+
+    ('Delivered', 'Delivered'),
+
+    ('Cancelled', 'Cancelled')
+
+]
 
     user = models.ForeignKey(
         User,
@@ -33,6 +83,26 @@ class Order(models.Model):
         blank=True,
         null=True
     )
+
+    status = models.CharField(
+
+    max_length=20,
+
+    choices=STATUS_CHOICES,
+
+    default='Pending'
+    )    
+
+    shipping_address = models.ForeignKey(
+
+    ShippingAddress,
+
+    on_delete=models.SET_NULL,
+
+    null=True,
+
+    blank=True
+)
 
     def __str__(self):
 
@@ -66,3 +136,5 @@ class Coupon(models.Model):
 
     def __str__(self):
         return self.code
+
+

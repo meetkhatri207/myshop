@@ -1,0 +1,346 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<style>
+    body {
+        background: #f8fafc;
+    }
+
+    .address-page {
+        max-width: 1200px;
+        margin: 40px auto;
+        padding: 20px;
+    }
+
+    /* .address-grid {
+        display: grid;
+        grid-template-columns: 1fr 420px;
+        gap: 35px;
+        align-items: start;
+    } */
+
+    /* LEFT */
+
+    .address-card {
+        background: white;
+        padding: 40px;
+        border-radius: 28px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
+        border: 1px solid #e2e8f0;
+    }
+
+    .page-badge {
+        display: inline-block;
+        padding: 10px 18px;
+        background: #eff6ff;
+        color: #2563eb;
+        border-radius: 999px;
+        font-size: 14px;
+        font-weight: 700;
+        margin-bottom: 20px;
+    }
+
+    .address-title {
+        font-size: 42px;
+        font-weight: 900;
+        color: #0f172a;
+        margin-bottom: 12px;
+    }
+
+    .address-subtitle {
+        color: #64748b;
+        margin-bottom: 35px;
+        font-size: 16px;
+        line-height: 1.7;
+    }
+
+    /* FORM */
+
+    .address-form {
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+    }
+
+    .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .form-group label {
+        font-size: 15px;
+        font-weight: 700;
+        color: #0f172a;
+    }
+
+    .form-input,
+    .form-textarea {
+        width: 100%;
+        padding: 16px 18px;
+        border-radius: 16px;
+        border: 1px solid #dbe2ea;
+        background: #f8fafc;
+        outline: none;
+        transition: 0.3s;
+        font-size: 15px;
+        color: #0f172a;
+    }
+
+    .form-input:focus,
+    .form-textarea:focus {
+        border-color: #2563eb;
+        background: white;
+        box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+    }
+
+    .form-textarea {
+        min-height: 140px;
+        resize: vertical;
+    }
+
+    .submit-btn {
+        margin-top: 10px;
+        padding: 18px;
+        border: none;
+        border-radius: 18px;
+        background: linear-gradient(135deg, #2563eb, #1d4ed8);
+        color: white;
+        font-size: 16px;
+        font-weight: 800;
+        cursor: pointer;
+        transition: 0.3s;
+    }
+
+    .submit-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 24px rgba(37, 99, 235, 0.25);
+    }
+
+    /* RIGHT */
+
+    .summary-card {
+        background: white;
+        padding: 30px;
+        border-radius: 28px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
+        border: 1px solid #e2e8f0;
+        position: sticky;
+        top: 110px;
+    }
+
+    .summary-title {
+        font-size: 28px;
+        color: #0f172a;
+        margin-bottom: 25px;
+    }
+
+    .summary-item {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 18px;
+        color: #475569;
+        font-size: 16px;
+    }
+
+    .summary-divider {
+        margin: 24px 0;
+        border: none;
+        border-top: 1px solid #e2e8f0;
+    }
+
+    .summary-total {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .summary-total h3 {
+        font-size: 20px;
+        color: #0f172a;
+    }
+
+    .summary-price {
+        font-size: 30px;
+        font-weight: 900;
+        color: #2563eb;
+    }
+
+    /* FEATURES */
+
+    .feature-list {
+        margin-top: 28px;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .feature-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        color: #475569;
+        font-size: 15px;
+    }
+
+    .feature-icon {
+        width: 38px;
+        height: 38px;
+        border-radius: 12px;
+        background: #eff6ff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #2563eb;
+        font-size: 18px;
+        font-weight: bold;
+    }
+
+    /* MOBILE */
+
+    @media(max-width: 1000px) {
+
+        .address-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .summary-card {
+            position: static;
+        }
+
+    }
+
+    @media(max-width: 768px) {
+
+        .address-card,
+        .summary-card {
+            padding: 25px;
+        }
+
+        .address-title {
+            font-size: 34px;
+        }
+
+        .form-grid {
+            grid-template-columns: 1fr;
+        }
+
+    }
+</style>
+
+<div class="address-page">
+
+    <div class="address-grid">
+
+        <!-- LEFT -->
+
+        <div class="address-card">
+
+            <span class="page-badge">
+                Secure Checkout
+            </span>
+
+            <h1 class="address-title">
+                Shipping Address 🚚
+            </h1>
+
+            <p class="address-subtitle">
+                Please enter your delivery information carefully to ensure
+                smooth and fast delivery of your order.
+            </p>
+
+            <form method="POST" class="address-form">
+
+                {% csrf_token %}
+
+                <div class="form-grid">
+
+                    <div class="form-group">
+
+                        <label>
+                            Full Name
+                        </label>
+
+                        <input type="text" name="full_name" class="form-input" placeholder="Enter full name" required>
+
+                    </div>
+
+                    <div class="form-group">
+
+                        <label>
+                            Phone Number
+                        </label>
+
+                        <input type="text" name="phone" class="form-input" placeholder="Enter phone number" required>
+
+                    </div>
+
+                </div>
+
+                <div class="form-group">
+
+                    <label>
+                        Full Address
+                    </label>
+
+                    <textarea name="address" class="form-textarea" placeholder="House no, street, landmark..."
+                        required></textarea>
+
+                </div>
+
+                <div class="form-grid">
+
+                    <div class="form-group">
+
+                        <label>
+                            City
+                        </label>
+
+                        <input type="text" name="city" class="form-input" placeholder="Enter city" required>
+
+                    </div>
+
+                    <div class="form-group">
+
+                        <label>
+                            State
+                        </label>
+
+                        <input type="text" name="state" class="form-input" placeholder="Enter state" required>
+
+                    </div>
+
+                </div>
+
+                <div class="form-group">
+
+                    <label>
+                        Pincode
+                    </label>
+
+                    <input type="text" name="pincode" class="form-input" placeholder="Enter pincode" required>
+
+                </div>
+
+                <button type="submit" class="submit-btn">
+
+                    Continue To Checkout →
+
+                </button>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}
