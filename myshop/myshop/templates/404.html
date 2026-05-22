@@ -1,15 +1,113 @@
-<!DOCTYPE html>
-<html>
-<title>Wrong address</title>
+{% extends 'base.html' %}
 
-<body>
+{% block content %}
 
-    <h1>Ooops!</h1>
+<style>
+    .error-container {
+        min-height: 80vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 2rem;
+        background: linear-gradient(to right, #f8fafc, #eef2ff);
+    }
 
-    <h2>I cannot find the file you requested!</h2>
+    .error-card {
+        background: white;
+        padding: 4rem 3rem;
+        border-radius: 24px;
+        text-align: center;
+        max-width: 500px;
+        width: 100%;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+    }
 
-    <a href="/products/">Go to Products page</a>
+    .error-code {
+        font-size: 6rem;
+        font-weight: 900;
+        color: #111827;
+        margin-bottom: 1rem;
+        line-height: 1;
+    }
 
-</body>
+    .error-title {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #1f2937;
+        margin-bottom: 1rem;
+    }
 
-</html>
+    .error-text {
+        color: #6b7280;
+        font-size: 1rem;
+        line-height: 1.7;
+        margin-bottom: 2rem;
+    }
+
+    .error-btn {
+        display: inline-block;
+        padding: 14px 28px;
+        background: #111827;
+        color: white;
+        text-decoration: none;
+        border-radius: 12px;
+        font-weight: 600;
+        transition: 0.3s ease;
+    }
+
+    .error-btn:hover {
+        background: #000;
+        transform: translateY(-2px);
+    }
+
+    .error-icon {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+    }
+
+    @media (max-width: 768px) {
+
+        .error-card {
+            padding: 3rem 1.5rem;
+        }
+
+        .error-code {
+            font-size: 4rem;
+        }
+
+        .error-title {
+            font-size: 1.5rem;
+        }
+    }
+</style>
+
+<div class="error-container">
+
+    <div class="error-card">
+
+        <div class="error-icon">
+            😵
+        </div>
+
+        <h1 class="error-code">
+            404
+        </h1>
+
+        <h2 class="error-title">
+            Page Not Found
+        </h2>
+
+        <p class="error-text">
+            Oops! The page you are looking for does not exist,
+            may have been removed, or the URL is incorrect.
+        </p>
+
+        <a href="/products/" class="error-btn">
+            ← Back To Products
+        </a>
+
+    </div>
+
+</div>
+
+{% endblock %}
