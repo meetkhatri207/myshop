@@ -9,75 +9,415 @@
 
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>My Shop</title>
+    <title>
+        My Shop
+    </title>
 
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background: #f8fafc;
+            color: #0f172a;
+        }
+
+        a {
+            text-decoration: none;
+        }
+
+        /* NAVBAR */
+
+        .navbar {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid #e2e8f0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .navbar-container {
+            max-width: 1300px;
+            margin: auto;
+            padding: 18px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        /* LOGO */
+
+        .logo a {
+            font-size: 30px;
+            font-weight: 900;
+            color: #0f172a;
+            letter-spacing: -1px;
+        }
+
+        .logo span {
+            color: #2563eb;
+        }
+
+        /* LINKS */
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 18px;
+        }
+
+        .nav-link {
+            color: #334155;
+            font-weight: 600;
+            transition: 0.3s;
+            position: relative;
+        }
+
+        .nav-link:hover {
+            color: #2563eb;
+        }
+
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            background: #2563eb;
+            left: 0;
+            bottom: -6px;
+            transition: 0.3s;
+        }
+
+        .nav-link:hover::after {
+            width: 100%;
+        }
+
+        /* BUTTONS */
+
+        .btn {
+            padding: 12px 20px;
+            border-radius: 12px;
+            font-weight: 700;
+            transition: 0.3s;
+        }
+
+        .login-btn {
+            background: #eff6ff;
+            color: #2563eb;
+        }
+
+        .login-btn:hover {
+            background: #dbeafe;
+        }
+
+        .register-btn {
+            background: #2563eb;
+            color: white;
+        }
+
+        .register-btn:hover {
+            background: #1d4ed8;
+        }
+
+        /* USER DROPDOWN */
+
+        .user-dropdown {
+            position: relative;
+        }
+
+        .user-btn {
+            border: none;
+            background: #eff6ff;
+            color: #1d4ed8;
+            padding: 12px 18px;
+            border-radius: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: 0.3s;
+            font-size: 15px;
+        }
+
+        .user-btn:hover {
+            background: #dbeafe;
+        }
+
+        .dropdown-arrow {
+            font-size: 11px;
+            transition: 0.3s;
+        }
+
+        .user-dropdown:hover .dropdown-arrow {
+            transform: rotate(180deg);
+        }
+
+        .dropdown-menu {
+            position: absolute;
+            top: 115%;
+            right: 0;
+            width: 250px;
+            background: white;
+            border-radius: 18px;
+            padding: 10px;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.12);
+            border: 1px solid #e2e8f0;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(10px);
+            transition: 0.3s;
+            z-index: 999;
+        }
+
+        .user-dropdown:hover .dropdown-menu {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .dropdown-user-info {
+            padding: 14px;
+            border-bottom: 1px solid #e2e8f0;
+            margin-bottom: 8px;
+        }
+
+        .dropdown-user-info h4 {
+            font-size: 16px;
+            color: #0f172a;
+            margin-bottom: 4px;
+        }
+
+        .dropdown-user-info p {
+            font-size: 13px;
+            color: #64748b;
+        }
+
+        .dropdown-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 16px;
+            border-radius: 12px;
+            color: #334155;
+            font-weight: 600;
+            transition: 0.3s;
+        }
+
+        .dropdown-item:hover {
+            background: #f8fafc;
+            color: #2563eb;
+        }
+
+        .logout-item {
+            color: #dc2626;
+        }
+
+        .logout-item:hover {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        /* MAIN */
+
+        .container {
+            max-width: 1300px;
+            margin: auto;
+            padding: 40px 24px;
+            min-height: 80vh;
+        }
+
+        /* FOOTER */
+
+        .footer {
+            background: #0f172a;
+            color: white;
+            margin-top: 60px;
+        }
+
+        .footer-container {
+            max-width: 1300px;
+            margin: auto;
+            padding: 50px 24px;
+            display: flex;
+            justify-content: space-between;
+            gap: 40px;
+            flex-wrap: wrap;
+        }
+
+        .footer-title {
+            margin-bottom: 12px;
+            font-size: 28px;
+        }
+
+        .footer-links {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .footer-links a {
+            color: #cbd5e1;
+            transition: 0.3s;
+        }
+
+        .footer-links a:hover {
+            color: white;
+        }
+
+        /* MOBILE */
+
+        @media(max-width: 900px) {
+
+            .navbar-container {
+                flex-direction: column;
+                gap: 20px;
+            }
+
+            .nav-links {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .dropdown-menu {
+                right: -40px;
+            }
+
+        }
+    </style>
 
 </head>
 
 <body>
 
-    <!-- Navbar -->
 
     <nav class="navbar">
 
-        <div class="logo">
-            <a href="/products/">My Shop</a>
-        </div>
+        <div class="navbar-container">
 
-        <div class="nav-links">
+            <div class="logo">
 
-            <a href="/products/">Products</a>
+                <a href="/">
+                    My<span>Shop</span>
+                </a>
 
-            <a href="/cart/">Cart</a>
-
-            <a href="/wishlist/">
-                Wishlist
-            </a>
-
-            {% if user.is_authenticated %}
-
-            <a href="/users/dashboard/">
-                Dashboard
-            </a>
+            </div>
 
 
+            <div class="nav-links">
 
-            <span class="welcome-text">
-                Welcome, {{ user.username }}
-            </span>
+                <a href="/products/" class="nav-link">
+                    Products
+                </a>
 
-            <a href="/users/logout/" class="btn logout-btn">
-                Logout
-            </a>
+                <a href="/cart/" class="nav-link">
+                    Cart
+                </a>
 
-            {% if user.is_staff %}
+                <a href="/wishlist/" class="nav-link">
+                    Wishlist
+                </a>
 
-            <a href="/dashboard/">
+                {% if user.is_authenticated %}
 
-                Admin Dashboard
 
-            </a>
+                <div class="user-dropdown">
 
-            {% endif %}
+                    <button class="user-btn">
 
-            {% else %}
+                        👋 Hello, {{ user.username }}
 
-            <a href="/users/login/" class="btn">
-                Login
-            </a>
+                        <span class="dropdown-arrow">
+                            ▼
+                        </span>
 
-            <a href="/users/register/" class="btn register-btn">
-                Register
-            </a>
+                    </button>
 
-            {% endif %}
+                    <div class="dropdown-menu">
+
+                        <div class="dropdown-user-info">
+
+                            <h4>
+                                Hello, {{ user.username }}
+                            </h4>
+
+                            <p>
+                                Logged in successfully
+                            </p>
+
+                        </div>
+
+                        <a href="/users/dashboard/" class="dropdown-item">
+
+                            👤 My Dashboard
+
+                        </a>
+
+                        <!-- <a href="/wishlist/" class="dropdown-item">
+
+                            ❤️ My Wishlist
+
+                        </a>
+
+                        <a href="/cart/" class="dropdown-item">
+
+                            🛒 My Cart
+
+                        </a> -->
+
+                        {% if user.is_staff %}
+
+                        <a href="/dashboard/" class="dropdown-item">
+
+                            📊 Admin Dashboard
+
+                        </a>
+
+                        {% endif %}
+
+                        <a href="/users/logout/" class="dropdown-item logout-item">
+
+                            🚪 Logout
+
+                        </a>
+
+                    </div>
+
+                </div>
+
+                {% else %}
+
+                <a href="/users/login/" class="btn login-btn">
+                    Login
+                </a>
+
+                <a href="/users/register/" class="btn register-btn">
+                    Register
+                </a>
+
+                {% endif %}
+
+            </div>
 
         </div>
 
     </nav>
 
-    <!-- Main Content -->
 
     <main class="container">
 
@@ -85,6 +425,47 @@
         {% endblock %}
 
     </main>
+
+
+    <footer class="footer">
+
+        <div class="footer-container">
+
+            <div>
+
+                <h2 class="footer-title">
+                    MyShop 🛍️
+                </h2>
+
+                <p>
+                    Modern Django Ecommerce Website Experience
+                </p>
+
+            </div>
+
+            <div class="footer-links">
+
+                <a href="/">
+                    Home
+                </a>
+
+                <a href="/products/">
+                    Products
+                </a>
+
+                <a href="/cart/">
+                    Cart
+                </a>
+
+                <a href="/wishlist/">
+                    Wishlist
+                </a>
+
+            </div>
+
+        </div>
+
+    </footer>
 
 </body>
 

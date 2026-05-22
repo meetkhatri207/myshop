@@ -124,15 +124,15 @@
 
         data: {
 
-            labels: {{ months| safe }},
+            labels: { months },
 
-        datasets: [{
+            datasets: [{
 
-            label: 'Revenue',
+                label: 'Revenue',
 
-            data: {{ totals| safe }},
+                data: { totals },
 
-        borderWidth: 1
+                borderWidth: 1
 
             }]
 
@@ -140,19 +140,19 @@
 
         options: {
 
-        responsive: true,
+            responsive: true,
 
-        scales: {
+            scales: {
 
-            y: {
+                y: {
 
-                beginAtZero: true
+                    beginAtZero: true
+
+                }
 
             }
 
         }
-
-    }
 
     });
 
