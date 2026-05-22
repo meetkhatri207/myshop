@@ -5,7 +5,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = 'django-insecure-7#10_(9j%&!_qes953y9mkwi6(wzkga8h$u&)v&$v088=c+&65'
 
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ['myshop-q5lf.onrender.com', 'localhost', '127.0.0.1']
 
