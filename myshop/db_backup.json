@@ -21,13 +21,83 @@
     }
 },
 {
+    "model": "products.category",
+    "pk": 9,
+    "fields": {
+        "name": "Mobiles"
+    }
+},
+{
+    "model": "products.category",
+    "pk": 10,
+    "fields": {
+        "name": "Laptops"
+    }
+},
+{
+    "model": "products.category",
+    "pk": 11,
+    "fields": {
+        "name": "Accessories"
+    }
+},
+{
+    "model": "products.category",
+    "pk": 12,
+    "fields": {
+        "name": "Cameras"
+    }
+},
+{
+    "model": "products.category",
+    "pk": 13,
+    "fields": {
+        "name": "Gaming"
+    }
+},
+{
+    "model": "products.category",
+    "pk": 14,
+    "fields": {
+        "name": "Monitors"
+    }
+},
+{
+    "model": "products.category",
+    "pk": 15,
+    "fields": {
+        "name": "Office"
+    }
+},
+{
+    "model": "products.category",
+    "pk": 16,
+    "fields": {
+        "name": "Furniture"
+    }
+},
+{
+    "model": "products.category",
+    "pk": 17,
+    "fields": {
+        "name": "Wearables"
+    }
+},
+{
+    "model": "products.category",
+    "pk": 18,
+    "fields": {
+        "name": "Audio"
+    }
+},
+{
     "model": "products.product",
     "pk": 1,
     "fields": {
         "name": "iPhone 16",
         "price": 999,
         "description": "The iPhone 16 brings next-generation innovation with an even faster Apple chipset, enhanced AI-powered features, and an upgraded camera system for professional-quality photography and video recording. Its bright and immersive Super Retina display delivers an ultra-smooth viewing experience, while improved battery efficiency ensures longer usage throughout the day. Designed with premium materials and advanced performance capabilities, the iPhone 16 offers seamless multitasking, lightning-fast connectivity, and the latest iOS features, making it an ideal flagship smartphone for modern users.",
-        "stock": 4,
+        "stock": 1,
         "image": "products/apple-iphone-16-plus-back.jpg",
         "category": 1
     }
@@ -39,7 +109,7 @@
         "name": "iPhone 13",
         "price": 600,
         "description": "The iPhone 13 delivers powerful performance with Apple’s A15 Bionic chip, making everyday tasks, gaming, and multitasking incredibly smooth. Its stunning 6.1-inch Super Retina XDR display provides vibrant colors and sharp visuals for movies, photos, and browsing. The advanced dual-camera system captures beautiful photos and cinematic videos even in low light, while the long-lasting battery keeps you connected all day. With a sleek premium design, 5G support, and reliable iOS experience, the iPhone 13 is a perfect blend of style, speed, and performance.",
-        "stock": 9,
+        "stock": 1,
         "image": "products/Apple_iphone13_hero_geo_09142021_inline.jpg.slideshow-medium.jpg",
         "category": 2
     }
@@ -51,9 +121,249 @@
         "name": "samsung",
         "price": 50000,
         "description": "Introducing the Samsung S24 Ultra 5G, an epitome of innovation and luxury. With its cutting-edge technology, including an advanced camera system and lightning-fast 5G connectivity, experience unparalleled performance. Boasting a sleek design and vibrant display, the Samsung S24 Ultra 5G redefines smartphone excellence, catering to the most discerning users.",
-        "stock": 0,
+        "stock": 100,
         "image": "products/images.jpg",
         "category": 1
+    }
+},
+{
+    "model": "products.product",
+    "pk": 45,
+    "fields": {
+        "name": "iPhone 15",
+        "price": 79999,
+        "description": "Apple latest smartphone",
+        "stock": 15,
+        "image": "default/no-image.png",
+        "category": 9
+    }
+},
+{
+    "model": "products.product",
+    "pk": 46,
+    "fields": {
+        "name": "Samsung Galaxy S24",
+        "price": 74999,
+        "description": "Samsung flagship mobile",
+        "stock": 9,
+        "image": "default/no-image.png",
+        "category": 9
+    }
+},
+{
+    "model": "products.product",
+    "pk": 47,
+    "fields": {
+        "name": "MacBook Air M3",
+        "price": 129999,
+        "description": "Apple lightweight laptop",
+        "stock": 8,
+        "image": "default/no-image.png",
+        "category": 10
+    }
+},
+{
+    "model": "products.product",
+    "pk": 48,
+    "fields": {
+        "name": "Dell XPS 15",
+        "price": 115000,
+        "description": "Dell premium laptop",
+        "stock": 5,
+        "image": "default/no-image.png",
+        "category": 10
+    }
+},
+{
+    "model": "products.product",
+    "pk": 49,
+    "fields": {
+        "name": "Sony Headphones",
+        "price": 14999,
+        "description": "Noise cancelling headphones",
+        "stock": 20,
+        "image": "default/no-image.png",
+        "category": 11
+    }
+},
+{
+    "model": "products.product",
+    "pk": 50,
+    "fields": {
+        "name": "Boat Earbuds",
+        "price": 2999,
+        "description": "Wireless earbuds",
+        "stock": 34,
+        "image": "default/no-image.png",
+        "category": 11
+    }
+},
+{
+    "model": "products.product",
+    "pk": 51,
+    "fields": {
+        "name": "Canon DSLR",
+        "price": 55999,
+        "description": "Professional DSLR camera",
+        "stock": 7,
+        "image": "default/no-image.png",
+        "category": 12
+    }
+},
+{
+    "model": "products.product",
+    "pk": 52,
+    "fields": {
+        "name": "Nikon Camera",
+        "price": 48999,
+        "description": "Photography camera",
+        "stock": 6,
+        "image": "default/no-image.png",
+        "category": 12
+    }
+},
+{
+    "model": "products.product",
+    "pk": 53,
+    "fields": {
+        "name": "Gaming Mouse",
+        "price": 2499,
+        "description": "RGB gaming mouse",
+        "stock": 49,
+        "image": "default/no-image.png",
+        "category": 13
+    }
+},
+{
+    "model": "products.product",
+    "pk": 54,
+    "fields": {
+        "name": "Mechanical Keyboard",
+        "price": 5999,
+        "description": "Mechanical RGB keyboard",
+        "stock": 25,
+        "image": "default/no-image.png",
+        "category": 13
+    }
+},
+{
+    "model": "products.product",
+    "pk": 55,
+    "fields": {
+        "name": "LG Monitor",
+        "price": 18999,
+        "description": "27 inch 4K monitor",
+        "stock": 12,
+        "image": "default/no-image.png",
+        "category": 14
+    }
+},
+{
+    "model": "products.product",
+    "pk": 56,
+    "fields": {
+        "name": "Asus ROG Laptop",
+        "price": 145000,
+        "description": "High-end gaming laptop",
+        "stock": 4,
+        "image": "default/no-image.png",
+        "category": 13
+    }
+},
+{
+    "model": "products.product",
+    "pk": 57,
+    "fields": {
+        "name": "HP Printer",
+        "price": 8999,
+        "description": "Wireless inkjet printer",
+        "stock": 8,
+        "image": "default/no-image.png",
+        "category": 15
+    }
+},
+{
+    "model": "products.product",
+    "pk": 58,
+    "fields": {
+        "name": "Office Chair",
+        "price": 12999,
+        "description": "Ergonomic office chair",
+        "stock": 18,
+        "image": "default/no-image.png",
+        "category": 16
+    }
+},
+{
+    "model": "products.product",
+    "pk": 59,
+    "fields": {
+        "name": "Wooden Desk",
+        "price": 15999,
+        "description": "Modern wooden desk",
+        "stock": 10,
+        "image": "default/no-image.png",
+        "category": 16
+    }
+},
+{
+    "model": "products.product",
+    "pk": 60,
+    "fields": {
+        "name": "Apple Watch",
+        "price": 42999,
+        "description": "Smart fitness watch",
+        "stock": 14,
+        "image": "default/no-image.png",
+        "category": 17
+    }
+},
+{
+    "model": "products.product",
+    "pk": 61,
+    "fields": {
+        "name": "Mi Smart Band",
+        "price": 2499,
+        "description": "Affordable smart band",
+        "stock": 40,
+        "image": "default/no-image.png",
+        "category": 17
+    }
+},
+{
+    "model": "products.product",
+    "pk": 62,
+    "fields": {
+        "name": "JBL Speaker",
+        "price": 6999,
+        "description": "Portable bluetooth speaker",
+        "stock": 17,
+        "image": "default/no-image.png",
+        "category": 18
+    }
+},
+{
+    "model": "products.product",
+    "pk": 63,
+    "fields": {
+        "name": "PlayStation 5",
+        "price": 54999,
+        "description": "Sony gaming console",
+        "stock": 3,
+        "image": "default/no-image.png",
+        "category": 13
+    }
+},
+{
+    "model": "products.product",
+    "pk": 64,
+    "fields": {
+        "name": "Xbox Series X",
+        "price": 52999,
+        "description": "Microsoft gaming console",
+        "stock": 0,
+        "image": "default/no-image.png",
+        "category": 13
     }
 }
 ]

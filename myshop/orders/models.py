@@ -104,6 +104,11 @@ class Order(models.Model):
     blank=True
 )
 
+    subtotal = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    discount_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    final_total = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    coupon_code = models.CharField(max_length=50, blank=True, null=True)
+
     def __str__(self):
 
         return self.user.username
@@ -130,8 +135,19 @@ class OrderItem(models.Model):
         return self.product.name
 
 class Coupon(models.Model):
+
+    DISCOUNT_TYPES = [
+
+        ('percentage', 'Percentage'),
+
+        ('flat', 'Flat')
+
+    ]
     code = models.CharField(max_length=50,unique=True)
-    discount = models.IntegerField(null=True)
+    discount_type = models.CharField(max_length=20, choices=DISCOUNT_TYPES)
+    amount = models.IntegerField(null=True,
+    blank=True)
+    minimum_order_amount = models.IntegerField(default=0, null=True, blank=True)
     active = models.BooleanField(default=True)
 
     def __str__(self):

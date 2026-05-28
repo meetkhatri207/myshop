@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from products.models import Product
 from django.contrib.auth.decorators import login_required
-from orders.models import Order, OrderItem, ShippingAddress
+from orders.models import Order, OrderItem, ShippingAddress, Coupon
 from products.models import Product
 from django.http import HttpResponse
 
@@ -19,7 +19,7 @@ def cart_add(request, id):
 
     request.session['cart'] = cart
 
-    return redirect('/cart/')
+    return redirect('/products/')
 
 
 def cart_increase(request, product_id):
@@ -59,11 +59,22 @@ def cart_decrease(request, product_id):
 
 def cart_detail(request):
 
-    cart = request.session.get('cart', {})
+    cart = request.session.get(
+        'cart',
+        {}
+    )
 
     products = []
 
     total = 0
+
+    # ACTIVE COUPONS
+
+    coupons = Coupon.objects.filter(
+        active=True
+    )
+
+    # CART PRODUCTS
 
     for product_id, quantity in cart.items():
 
@@ -81,35 +92,92 @@ def cart_detail(request):
 
         products.append(product)
 
-    coupon_data = request.session.get(
-        'coupon'
-    )
+    # DEFAULT VALUES
 
     discount_amount = 0
 
     final_total = total
 
+    # SESSION COUPON
+
+    coupon_data = request.session.get( 'coupon', {} )
+    amount = coupon_data.get( 'amount', 0 )
+
+    # APPLY COUPON
+
     if coupon_data:
 
-        discount_percent = coupon_data[
-            'discount'
-        ]
+        try:
 
-        discount_amount = (
-            total * discount_percent
-        ) / 100
+            coupon = Coupon.objects.get(
+                code=coupon_data['code'],
+                active=True
+            )
 
-        final_total = total - discount_amount
+            # MINIMUM ORDER VALIDATION
+
+            if total < coupon.minimum_order_amount:
+
+                del request.session['coupon']
+
+                coupon_data = None
+
+            else:
+
+                # PERCENTAGE DISCOUNT
+
+                if coupon.discount_type == 'percentage':
+
+                    discount_amount = (
+                        total * coupon.amount
+                    ) / 100
+
+                # FLAT DISCOUNT
+
+                elif coupon.discount_type == 'flat':
+
+                    discount_amount = coupon.amount
+
+                # FINAL TOTAL
+
+                final_total = round(
+                    total - discount_amount, 2
+                )
+
+                # PREVENT NEGATIVE TOTAL
+
+                if final_total < 0:
+
+                    final_total = 0
+
+        except Coupon.DoesNotExist:
+
+            if 'coupon' in request.session:
+
+                del request.session['coupon']
+
+            coupon_data = None
 
     return render(
+
         request,
+
         'cart/detail.html',
+
         {
+
             'products': products,
+
             'total': total,
-            'final_total': final_total,
+
             'discount_amount': discount_amount,
-            'coupon_data': coupon_data
+
+            'final_total': final_total,
+
+            'coupon_data': coupon_data,
+
+            'coupons': coupons
+
         }
     )
 
@@ -150,22 +218,34 @@ def checkout(request):
         total += product.price * quantity
 
     coupon_data = request.session.get(
-        'coupon'
+        'coupon',
+        {}
     )
 
     discount_amount = 0
 
     if coupon_data:
 
-        discount_percent = coupon_data[
-            'discount'
-        ]
+        amount = coupon_data.get(
+            'amount',
+            0
+        )
 
-        discount_amount = (
-            total * discount_percent
-        ) / 100
+        discount_type = coupon_data.get(
+            'discount_type',
+            ''
+        )
 
-        total -= discount_amount
+        if discount_type == 'percentage':
+
+            discount_amount = (
+                total * amount
+            ) / 100
+
+        elif discount_type == 'flat':
+
+            discount_amount = amount
+
 
     order = Order.objects.create(
         user=request.user,

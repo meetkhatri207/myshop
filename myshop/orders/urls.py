@@ -14,9 +14,12 @@ path('apply-coupon/', views.apply_coupon),
 
 path('remove-coupon/', views.remove_coupon),
 
+path('create-order/', views.create_order, name='create_order'),
+
 path(
     'payment/<int:order_id>/',
-    views.payment_page
+    views.payment_page,
+    name='payment_page'
 ),
 path('my-orders/', views.my_orders),
 path('<int:order_id>/', views.order_detail),

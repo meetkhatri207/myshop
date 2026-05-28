@@ -1,6 +1,6 @@
 import razorpay
 from django.shortcuts import get_object_or_404, render
-from .models import Order, OrderItem, Coupon
+from .models import Order, OrderItem, Coupon, ShippingAddress  # Added ShippingAddress
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse
 from django.contrib.auth.decorators import login_required
@@ -12,208 +12,245 @@ from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, 
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import inch
 from reportlab.lib.enums import TA_CENTER, TA_RIGHT
-from reportlab.pdfgen import canvas
 from reportlab.graphics.shapes import Drawing, Rect, Line
 from reportlab.graphics import renderPDF
 from io import BytesIO
-from django.http import HttpResponse
-from django.contrib.auth.decorators import login_required
 from decimal import Decimal
+from orders.models import Product
+from django.contrib import messages
+from django.utils import timezone
 
 
 def payment_success(request, order_id):
-
-    order = get_object_or_404(
-        Order,
-        id=order_id
-    )
-
+    order = get_object_or_404(Order, id=order_id)
     order.payment_status = True
-
     order.save()
-
+    
+    if 'coupon' in request.session:
+        del request.session['coupon']
+    
     return render(request, 'orders/success.html', {
         'order': order
     })
 
-def order_detail(request, order_id):
-
-    order = Order.objects.get(id=order_id)
-
-    items = OrderItem.objects.filter(
-        order=order
-    )
-
-    print(order)
-
-    return render(request, 'orders/detail.html', {
-        'order': order,
-        'items': items
-    })
 
 def apply_coupon(request):
-
-    code = request.POST.get('code')
-
-    try:
-
-        coupon = Coupon.objects.get(
-            code=code,
-            active=True
-        )
-
-        request.session['coupon'] = {
-            'code': coupon.code,
-            'discount': coupon.discount
-        }
-
-    except Coupon.DoesNotExist:
-
-        return HttpResponse(
-            'Invalid Coupon'
-        )
-
+    if request.method == 'POST':
+        code = request.POST.get('code')
+        
+        try:
+            coupon = Coupon.objects.get(code=code, active=True)
+            
+            # CART TOTAL
+            cart = request.session.get('cart', {})
+            total = 0
+            
+            for product_id, quantity in cart.items():
+                product = Product.objects.get(id=product_id)
+                total += (product.price * quantity)
+            
+            # MINIMUM ORDER VALIDATION
+            if total < coupon.minimum_order_amount:
+                return HttpResponse(f'Minimum order should be ₹{coupon.minimum_order_amount}')
+            
+            # SAVE COUPON
+            request.session['coupon'] = {
+                'code': coupon.code,
+                'amount': float(coupon.amount),
+                'discount_type': coupon.discount_type,
+                'minimum_order_amount': float(coupon.minimum_order_amount)
+            }
+            
+        except Coupon.DoesNotExist:
+            return HttpResponse('Invalid Coupon')
+    
     return redirect('/cart/')
+
 
 def remove_coupon(request):
     if 'coupon' in request.session:
         del request.session['coupon']
-
     return redirect('/cart/')
+
+
+@login_required
+def create_order(request):
+    cart = request.session.get('cart', {})
+    
+    if not cart:
+        messages.error(request, "Your cart is empty.")
+        return redirect('/cart/')
+    
+    coupon_data = request.session.get('coupon')
+    
+    # Calculate totals
+    subtotal = Decimal('0')
+    products_dict = {}
+    
+    for product_id, quantity in cart.items():
+        product = Product.objects.get(id=product_id)
+        products_dict[product_id] = product
+        subtotal += Decimal(str(product.price)) * Decimal(str(quantity))
+    
+    # Calculate discount
+    discount_amount = Decimal('0')
+    final_total = subtotal
+    coupon_code = None
+    
+    if coupon_data:
+        try:
+            coupon = Coupon.objects.get(code=coupon_data['code'], active=True)
+            if subtotal >= Decimal(str(coupon.minimum_order_amount)):
+                if coupon.discount_type == 'percentage':
+                    discount_amount = (subtotal * Decimal(str(coupon.amount))) / 100
+                elif coupon.discount_type == 'flat':
+                    discount_amount = Decimal(str(coupon.amount))
+                
+                final_total = subtotal - discount_amount
+                coupon_code = coupon.code
+                
+                # Don't delete coupon here - keep for payment page
+        except Coupon.DoesNotExist:
+            pass
+    
+    # Get shipping address
+    shipping_address_id = request.session.get('shipping_address_id')
+    if not shipping_address_id:
+        messages.error(request, "Please provide shipping address first.")
+        return redirect('/orders/shipping-address/')
+    
+    try:
+        shipping_address = ShippingAddress.objects.get(id=shipping_address_id, user=request.user)
+    except ShippingAddress.DoesNotExist:
+        messages.error(request, "Shipping address not found.")
+        return redirect('/orders/shipping-address/')
+    
+    # Create order with all amounts
+    order = Order.objects.create(
+        user=request.user,
+        shipping_address=shipping_address,
+        subtotal=subtotal,
+        discount_amount=discount_amount,
+        final_total=final_total,
+        coupon_code=coupon_code,
+        total_price=final_total,  # For compatibility
+        payment_status=False
+    )
+    
+    # Create order items
+    for product_id, quantity in cart.items():
+        product = products_dict[product_id]
+        OrderItem.objects.create(
+            order=order,
+            product=product,
+            quantity=int(quantity),
+            price=product.price
+        )
+    
+    # Clear cart
+    request.session['cart'] = {}
+    
+    # Redirect to payment page
+    return redirect('payment_page', order_id=order.id)
+
 
 @login_required
 def payment_page(request, order_id):
+    try:
+        order = Order.objects.get(id=order_id, user=request.user)
+    except Order.DoesNotExist:
+        messages.error(request, "Order not found.")
+        return redirect('/cart/')
 
-    order = Order.objects.get(
-        id=order_id
-    )
+    # Get values from order (which already has discount applied)
+    subtotal = float(order.subtotal) if order.subtotal else 0
+    discount_amount = float(order.discount_amount) if order.discount_amount else 0
+    final_total = float(order.final_total) if order.final_total else float(order.total_price)
+    
+    # Safety check
+    if final_total <= 0:
+        messages.error(request, "Invalid order amount. Please check your cart.")
+        return redirect('/cart/')
 
-    client = razorpay.Client(
-        auth=(
-            settings.RAZORPAY_KEY_ID,
-            settings.RAZORPAY_KEY_SECRET
-        )
-    )
+    # Razorpay client
+    client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
+    
+    # Convert to paise
+    amount = int(final_total * 100)
+    
+    if amount > 50000000:
+        messages.error(request, "Amount exceeds payment limit.")
+        return redirect('/cart/')
 
-    payment = client.order.create({
+    try:
+        payment = client.order.create({
+            "amount": amount,
+            "currency": "INR",
+            "payment_capture": 1
+        })
+    except Exception as e:
+        print(f"Razorpay Error: {e}")
+        messages.error(request, "Payment gateway error. Please try again.")
+        return redirect('/cart/')
 
-        'amount': int(
-            order.total_price * 100
-        ),
-
-        'currency': 'INR',
-
-        'payment_capture': '1'
-    })
-
+    # Save Razorpay order ID
     order.razorpay_order_id = payment['id']
-
     order.save()
 
-    return render(
-        request,
-        'orders/payment.html',
-        {
-            'order': order,
-            'payment': payment,
-            'razorpay_key': settings.RAZORPAY_KEY_ID
-        }
-    )
+    return render(request, 'orders/payment.html', {
+        'order': order,
+        'payment': payment,
+        'razorpay_key': settings.RAZORPAY_KEY_ID,
+        'discount_amount': discount_amount,
+        'final_total': final_total,
+        'subtotal': subtotal
+    })
+
 
 @login_required
 def my_orders(request):
-
-    orders = Order.objects.filter(
-        user=request.user
-    ).order_by('-id')
-
-    print(orders)
-
+    orders = Order.objects.filter(user=request.user).order_by('-id')
+    
     return render(request, 'orders/my_orders.html', {
-        orders : orders
+        'orders': orders  # Fixed: Added quotes around 'orders'
     })
+
 
 @login_required
 def order_detail(request, order_id):
-
-    order = Order.objects.get(
-        id=order_id,
-        user=request.user
-    )
-
-    order_items = OrderItem.objects.filter(
-        order=order
-    )
-
-    return render(
-        request, 'orders/detail.html', {
-            'order': order,
-            'order_items': order_items
-        }
-    )
-
-
-from .models import ShippingAddress
+    order = Order.objects.get(id=order_id, user=request.user)
+    order_items = OrderItem.objects.filter(order=order)
+    
+    return render(request, 'orders/detail.html', {
+        'order': order,
+        'order_items': order_items
+    })
 
 
 @login_required
 def shipping_address(request):
-
     if request.method == 'POST':
-
         address = ShippingAddress.objects.create(
-
             user=request.user,
-
-            full_name=request.POST.get(
-                'full_name'
-            ),
-
-            phone=request.POST.get(
-                'phone'
-            ),
-
-            address=request.POST.get(
-                'address'
-            ),
-
-            city=request.POST.get(
-                'city'
-            ),
-
-            state=request.POST.get(
-                'state'
-            ),
-
-            pincode=request.POST.get(
-                'pincode'
-            )
+            full_name=request.POST.get('full_name'),
+            phone=request.POST.get('phone'),
+            address=request.POST.get('address'),
+            city=request.POST.get('city'),
+            state=request.POST.get('state'),
+            pincode=request.POST.get('pincode')
         )
+        
+        request.session['shipping_address_id'] = address.id
+        
+        return redirect('create_order')  # Changed to redirect to create_order
+    
+    return render(request, 'orders/shipping_address.html')
 
-        request.session[
-            'shipping_address_id'
-        ] = address.id
-
-        return redirect(
-            '/cart/checkout/'
-        )
-
-    return render(
-        request,
-        'orders/shipping_address.html'
-    )
 
 @login_required
 def invoice_pdf(request, order_id):
-
-    order = Order.objects.get(
-        id=order_id,
-        user=request.user
-    )
-
-    order_items = OrderItem.objects.filter(
-        order=order
-    )
+    order = Order.objects.get(id=order_id, user=request.user)
+    order_items = OrderItem.objects.filter(order=order)
 
     # Create buffer for PDF
     buffer = BytesIO()
@@ -244,32 +281,6 @@ def invoice_pdf(request, order_id):
         fontName='Helvetica-Bold'
     )
     
-    header_style = ParagraphStyle(
-        'Header',
-        parent=styles['Normal'],
-        fontSize=12,
-        textColor=colors.white,
-        fontName='Helvetica-Bold'
-    )
-    
-    subtitle_style = ParagraphStyle(
-        'Subtitle',
-        parent=styles['Heading2'],
-        fontSize=16,
-        textColor=colors.HexColor('#1565C0'),
-        spaceAfter=20,
-        fontName='Helvetica-Bold'
-    )
-    
-    info_style = ParagraphStyle(
-        'Info',
-        parent=styles['Normal'],
-        fontSize=10,
-        textColor=colors.HexColor('#424242'),
-        spaceAfter=6,
-        fontName='Helvetica'
-    )
-    
     # Header with logo/title
     header_data = [
         [Paragraph("<b><font color='#2E7D32'>MyShop</font></b>", title_style), 
@@ -282,9 +293,6 @@ def invoice_pdf(request, order_id):
         ('ALIGN', (0, 0), (0, 0), 'LEFT'),
         ('ALIGN', (1, 0), (1, 0), 'RIGHT'),
         ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-        ('FONTNAME', (0, 0), (0, 0), 'Helvetica-Bold'),
-        ('FONTSIZE', (0, 0), (0, 0), 28),
-        ('TEXTCOLOR', (0, 0), (0, 0), colors.HexColor('#2E7D32')),
     ]))
     
     elements.append(header_table)
@@ -297,12 +305,13 @@ def invoice_pdf(request, order_id):
     elements.append(Spacer(1, 20))
     
     # Order Information Box
+    created_date = getattr(order, 'created_at', timezone.now())
     info_data = [
         ['INVOICE DETAILS', ''],
         ['Invoice No:', f'INV-{order.id:06d}'],
-        ['Invoice Date:', order.created_at.strftime('%d %B, %Y') if hasattr(order, 'created_at') else 'N/A'],
+        ['Invoice Date:', created_date.strftime('%d %B, %Y')],
         ['Order ID:', f'ORD-{order.id:06d}'],
-        ['Order Date:', order.created_at.strftime('%d %B, %Y %I:%M %p') if hasattr(order, 'created_at') else 'N/A'],
+        ['Order Date:', created_date.strftime('%d %B, %Y %I:%M %p')],
         ['Payment Status:', '<b>Paid</b>'],
     ]
     
@@ -329,13 +338,21 @@ def invoice_pdf(request, order_id):
     elements.append(Spacer(1, 20))
     
     # Customer Information Box
+    # Handle potential missing shipping address
+    shipping_addr = getattr(order, 'shipping_address', None)
+    
     customer_data = [
         ['CUSTOMER INFORMATION', 'SHIPPING ADDRESS'],
-        ['Customer Name:', order.user.get_full_name() or order.user.username, 'Full Name:', order.shipping_address.full_name if order.shipping_address else 'N/A'],
-        ['Email:', order.user.email, 'Phone:', order.shipping_address.phone if order.shipping_address else 'N/A'],
-        ['Member Since:', request.user.date_joined.strftime('%B %Y') if hasattr(request.user, 'date_joined') else 'N/A', 'Address:', order.shipping_address.address if order.shipping_address else 'N/A'],
-        ['', '', 'City/State:', f"{order.shipping_address.city}, {order.shipping_address.state}" if order.shipping_address else 'N/A'],
-        ['', '', 'Pincode:', order.shipping_address.pincode if order.shipping_address else 'N/A'],
+        ['Customer Name:', order.user.get_full_name() or order.user.username, 
+         'Full Name:', shipping_addr.full_name if shipping_addr else 'N/A'],
+        ['Email:', order.user.email, 
+         'Phone:', shipping_addr.phone if shipping_addr else 'N/A'],
+        ['Member Since:', request.user.date_joined.strftime('%B %Y') if hasattr(request.user, 'date_joined') else 'N/A', 
+         'Address:', shipping_addr.address if shipping_addr else 'N/A'],
+        ['', '', 
+         'City/State:', f"{shipping_addr.city}, {shipping_addr.state}" if shipping_addr else 'N/A'],
+        ['', '', 
+         'Pincode:', shipping_addr.pincode if shipping_addr else 'N/A'],
     ]
     
     customer_table = Table(customer_data, colWidths=[110, 140, 110, 140])
@@ -372,18 +389,21 @@ def invoice_pdf(request, order_id):
     ]
     
     serial_no = 1
-    subtotal = 0
+    subtotal = Decimal('0')  # Use Decimal instead of float
     
     for item in order_items:
-        item_total = Decimal(str(item.quantity)) * item.price
+        # Convert to Decimal consistently
+        quantity = Decimal(str(item.quantity))
+        price = Decimal(str(item.price))
+        item_total = quantity * price
         subtotal += item_total
         
         products_data.append([
             str(serial_no),
-            Paragraph(item.product.name, styles['Normal']),
+            Paragraph(str(item.product.name), styles['Normal']),
             str(item.quantity),
-            f'₹ {item.price:.2f}',
-            f'₹ {item_total:.2f}'
+            f'₹ {float(price):.2f}',
+            f'₹ {float(item_total):.2f}'
         ])
         serial_no += 1
     
@@ -391,7 +411,7 @@ def invoice_pdf(request, order_id):
     while len(products_data) < 10:
         products_data.append(['', '', '', '', ''])
     
-    product_table = Table(products_data, colWidths=[40, 250, 60, 80, 80])
+    product_table = Table(products_data, colWidths=[40, 300, 60, 80, 80])
     product_table.setStyle(TableStyle([
         ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#2E7D32')),
         ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
@@ -410,7 +430,6 @@ def invoice_pdf(request, order_id):
         ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
         ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#BDBDBD')),
         ('BOX', (0, 0), (-1, -1), 1, colors.HexColor('#2E7D32')),
-        ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#F5F5F5')]),
     ]))
     
     elements.append(product_table)
@@ -423,10 +442,10 @@ def invoice_pdf(request, order_id):
     
     summary_data = [
         ['SUMMARY', ''],
-        ['Subtotal:', f'₹ {subtotal:.2f}'],
-        [f'GST ({int(tax_rate * 100)}%):', f'₹ {tax_amount:.2f}'],
+        ['Subtotal:', f'₹ {float(subtotal):.2f}'],
+        [f'GST ({int(tax_rate * 100)}%):', f'₹ {float(tax_amount):.2f}'],
         ['Shipping Charges:', '₹ 0.00'],
-        ['Total Amount:', f'₹ {total:.2f}'],
+        ['Total Amount:', f'₹ {float(total):.2f}'],
     ]
     
     summary_table = Table(summary_data, colWidths=[350, 100])

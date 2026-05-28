@@ -286,37 +286,53 @@
         gap: 10px;
     }
 
-    .coupon-input {
-        flex: 1;
+    .coupon-select {
+
         padding: 14px;
+
         border-radius: 12px;
-        border: 1px solid #dbe2ea;
-        outline: none;
+
+        border: 1px solid #ddd;
+
+        min-width: 260px;
+
+        background: white;
+
         font-size: 15px;
+
+        outline: none;
     }
 
     .coupon-btn {
-        padding: 14px 20px;
-        border: none;
-        background: #2563eb;
-        color: white;
-        border-radius: 12px;
-        font-weight: 700;
-        cursor: pointer;
-        transition: 0.3s;
-    }
 
-    .coupon-btn:hover {
-        background: #1d4ed8;
+        padding: 14px 22px;
+
+        border: none;
+
+        background: #2563eb;
+
+        color: white;
+
+        border-radius: 12px;
+
+        cursor: pointer;
+
+        font-weight: bold;
     }
 
     .coupon-success {
-        width: 100%;
+
+        flex-grow: 1;
+
         background: #dcfce7;
-        color: #15803d;
-        padding: 14px;
+
+        color: #166534;
+
+        padding: 14px 20px;
+
         border-radius: 12px;
-        font-weight: 700;
+
+        display: inline-block;
     }
 
     /* BUTTONS */
@@ -549,13 +565,19 @@
 
                 <div class="coupon-success">
 
-                    Coupon Applied:
-                    {{ coupon_data.code }}
+                    ✅
+                    <strong>
+
+                        {{ coupon_data.code }}
+
+                    </strong>
 
                 </div>
 
                 <a href="/orders/remove-coupon/" class="remove-btn">
-                    ❌
+
+                    Remove
+
                 </a>
 
                 {% else %}
@@ -564,10 +586,40 @@
 
                     {% csrf_token %}
 
-                    <input type="text" name="code" placeholder="Coupon code" class="coupon-input">
+                    <select name="code" class="coupon-select">
+
+                        <option value="">
+
+                            Select Coupon
+
+                        </option>
+
+                        {% for coupon in coupons %}
+
+                        <option value="{{ coupon.code }}">
+
+                            {{ coupon.code }}
+
+                            -
+                            {{ coupon.amount }}
+                            {% if coupon.discount_type == 'percentage'%}
+                            % OFF
+                            {% else %}
+                            ₹ OFF
+                            {% endif %}
+
+                            (Min ₹{{ coupon.minimum_order_amount }})
+
+                        </option>
+
+                        {% endfor %}
+
+                    </select>
 
                     <button type="submit" class="coupon-btn">
-                        Apply
+
+                        Apply Coupon
+
                     </button>
 
                 </form>
@@ -575,6 +627,8 @@
                 {% endif %}
 
             </div>
+
+
 
             <div class="summary-row">
 

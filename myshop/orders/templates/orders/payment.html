@@ -58,8 +58,6 @@
         line-height: 1.6;
     }
 
-    /* ORDER INFO */
-
     .order-info {
         background: #f8fafc;
         border-radius: 18px;
@@ -84,9 +82,24 @@
         font-size: 24px;
         font-weight: bold;
         color: #2563eb;
+        border-top: 2px solid #e2e8f0;
+        padding-top: 16px;
+        margin-top: 8px;
     }
 
-    /* BUTTON */
+    .discount-row {
+        color: #059669;
+        font-weight: 600;
+    }
+
+    .coupon-row {
+        color: #7c3aed;
+        font-size: 14px;
+        background: #f3e8ff;
+        padding: 8px 12px;
+        border-radius: 8px;
+        margin-top: 8px;
+    }
 
     .pay-btn {
         width: 100%;
@@ -113,7 +126,6 @@
     }
 
     @media(max-width: 600px) {
-
         .payment-card {
             padding: 30px;
         }
@@ -121,151 +133,111 @@
         .payment-title {
             font-size: 30px;
         }
-
     }
 </style>
 
 <div class="payment-container">
-
-
     <a href="/cart/" style="margin-right: auto; color: #1d4ed8; font-weight: 600; text-decoration: none;">⬅ Back to
         Cart</a>
 
     <div class="payment-card">
+        <div class="payment-icon">💳</div>
 
+        <h1 class="payment-title">Secure Payment</h1>
 
-        <div class="payment-icon">
-            💳
-        </div>
-
-        <h1 class="payment-title">
-            Secure Payment
-        </h1>
-
-        <p class="payment-subtitle">
-            Complete your payment securely using Razorpay
-        </p>
+        <p class="payment-subtitle">Complete your payment securely using Razorpay</p>
 
         <div class="order-info">
-
             <div class="info-row">
-
-                <span>
-                    Order ID
-                </span>
-
-                <strong>
-                    #{{ order.id }}
-                </strong>
-
+                <span>Order ID</span>
+                <strong>#{{ order.id }}</strong>
             </div>
 
             <div class="info-row">
-
-                <span>
-                    Customer
-                </span>
-
-                <strong>
-                    {{ request.user.username }}
-                </strong>
-
+                <span>Customer</span>
+                <strong>{{ request.user.get_full_name|default:request.user.username }}</strong>
             </div>
 
             <div class="info-row">
-
-                <span>
-                    Payment Method
-                </span>
-
-                <strong>
-                    Razorpay
-                </strong>
-
+                <span>Payment Method</span>
+                <strong>Razorpay (UPI/Card/NetBanking)</strong>
             </div>
 
-            <hr style="margin: 20px 0; border: none; border-top: 1px solid #e2e8f0;">
+            <hr style="margin: 16px 0; border: none; border-top: 1px solid #e2e8f0;">
+
+            <!-- Order Summary with Discount -->
+            <div class="info-row">
+                <span>Subtotal</span>
+                <span>₹ {{ subtotal|floatformat:2 }}</span>
+            </div>
+
+            {% if discount_amount > 0 %}
+            <div class="info-row discount-row">
+                <span>Discount Applied</span>
+                <span>- ₹ {{ discount_amount|floatformat:2 }}</span>
+            </div>
+            {% if order.coupon_code %}
+            <div class="coupon-row">
+                🏷️ Coupon: {{ order.coupon_code }} applied successfully!
+            </div>
+            {% endif %}
+            {% else %}
+            <div class="info-row">
+                <span>No Coupon Applied</span>
+                <span>₹ 0</span>
+            </div>
+            {% endif %}
 
             <div class="info-row grand-total">
-
-                <span>
-                    Total Amount
-                </span>
-
-                <span>
-                    ₹ {{ order.total_price }}
-                </span>
-
+                <span><strong>Total Amount to Pay</strong></span>
+                <span><strong>₹ {{ final_total|floatformat:2 }}</strong></span>
             </div>
-
         </div>
 
         <button id="pay-btn" class="pay-btn">
-
-            Pay ₹ {{ order.total_price }}
-
+            Pay ₹ {{ final_total|floatformat:2 }}
         </button>
 
         <p class="secure-text">
-            🔒 100% Secure Payment Gateway
+            🔒 100% Secure Payment Gateway | All transactions are encrypted
         </p>
-
     </div>
-
 </div>
-
 
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 
 <script>
-
     var options = {
-
         key: "{{ razorpay_key }}",
-
         amount: "{{ payment.amount }}",
-
         currency: "INR",
-
         name: "MyShop",
-
-        description: "Order Payment",
-
+        description: "Order Payment - Order #{{ order.id }}",
         order_id: "{{ payment.id }}",
-
         prefill: {
-
-            name: "{{ request.user.username }}",
-
+            name: "{{ request.user.get_full_name|default:request.user.username }}",
             email: "{{ request.user.email }}",
-
-            contact: "9876543210"
-
+            contact: "{{ request.user.phone|default:'9876543210' }}"
         },
-
-        handler: function (response) {
-
-            window.location.href =
-                "/orders/payment-success/{{ order.id }}/";
-
-        },
-
         theme: {
             color: "#2563eb"
+        },
+        handler: function (response) {
+            window.location.href = "/orders/payment-success/{{ order.id }}/";
+        },
+        modal: {
+            ondismiss: function () {
+                console.log("Payment modal closed");
+            }
         }
-
     };
 
     var rzp1 = new Razorpay(options);
 
     document.getElementById('pay-btn').onclick = function (e) {
-
         rzp1.open();
-
         e.preventDefault();
-
     }
-
 </script>
 
 {% endblock %}

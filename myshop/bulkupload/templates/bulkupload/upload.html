@@ -1,0 +1,38 @@
+<h1>Bulk Product Upload</h1>
+
+<form method="POST" enctype="multipart/form-data">
+
+    {% csrf_token %}
+
+    <input type="file" name="file">
+
+    <button type="submit">
+        Upload
+    </button>
+
+</form>
+
+<hr>
+
+<h2>
+    Success:
+    {{ success_count }}
+</h2>
+
+{% if errors %}
+
+<h2>Errors</h2>
+
+<ul>
+
+    {% for error in errors %}
+
+    <li>
+        {{ error }}
+    </li>
+
+    {% endfor %}
+
+</ul>
+
+{% endif %}
