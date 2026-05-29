@@ -21,6 +21,7 @@ path(
     views.payment_page,
     name='payment_page'
 ),
+path('payment/callback/', views.payment_callback, name='payment_callback'),
 path('my-orders/', views.my_orders),
 path('<int:order_id>/', views.order_detail),
 path(

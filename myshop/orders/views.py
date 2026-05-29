@@ -158,45 +158,41 @@ def payment_page(request, order_id):
     })
 
 
-@csrf_exempt
+@csrf_exempt # Razorpay sends an external POST request; skip standard CSRF tokens
 def payment_callback(request):
-    """
-    Handles secure payload returns dispatched by Razorpay Checkout script forms.
-    """
     if request.method == "POST":
-        payment_id = request.POST.get('razorpay_payment_id', '')
-        order_id = request.POST.get('razorpay_order_id', '')
-        signature = request.POST.get('razorpay_signature', '')
-        
-        params_dict = {
-            'razorpay_order_id': order_id,
-            'razorpay_payment_id': payment_id,
-            'razorpay_signature': signature
-        }
-        
         try:
-            # Verify cryptographic payment payload authenticity
-            result = razorpay_client.utility.verify_payment_signature(params_dict)
-            
-            if result is None:  # Returns None if valid signature verified
-                order = Order.objects.get(razorpay_order_id=order_id)
-                order.payment_id = payment_id
-                order.payment_status = True
-                order.status = 'Processing'
-                order.save()
-                
-                # Clear applied coupon from session memory securely post-purchase
-                if 'coupon' in request.session:
-                    del request.session['coupon']
-                
-                return render(request, 'orders/success.html', {'order': order})
-            else:
-                return render(request, 'orders/payment_failed.html')
-                
+            # Extract tracking tokens passed back from Razorpay
+            payment_id = request.POST.get('razorpay_payment_id', '')
+            provider_order_id = request.POST.get('razorpay_order_id', '')
+            signature = request.POST.get('razorpay_signature', '')
+
+            # Initialize client connection
+            client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
+
+            # Cryptographically verify signature integrity
+            params_dict = {
+                'razorpay_order_id': provider_order_id,
+                'razorpay_payment_id': payment_id,
+                'razorpay_signature': signature
+            }
+            client.utility.verify_payment_signature(params_dict)
+
+            # Match and pull order based on your model field tracking the provider ID
+            order = get_object_or_404(Order, razorpay_order_id=provider_order_id)
+            order.status = 'Paid' # Or however your application tracks completion state
+            order.payment_id = payment_id
+            order.save()
+
+            # Safely send the user to your app's payment success or order invoice screen
+            return redirect('orders:invoice', order_id=order.id)
+
+        except razorpay.errors.SignatureVerificationError:
+            return HttpResponseBadRequest("Tampered payment payload or signature verification failed.")
         except Exception as e:
-            return render(request, 'orders/payment_failed.html')
+            return HttpResponseBadRequest(f"An unexpected error occurred processing callback: {str(e)}")
             
-    return HttpResponseBadRequest("Method not allowed")
+    return HttpResponseBadRequest("Invalid request method.")
 
 
 def apply_coupon(request):
