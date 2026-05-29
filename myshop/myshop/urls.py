@@ -34,7 +34,7 @@ urlpatterns = [
     include('dashboard.urls')
     ),
     path(
-    'bulk-upload/',
+    'dashboard/bulk-upload/',
     include('bulkupload.urls')
     )
 ]

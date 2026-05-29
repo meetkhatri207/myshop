@@ -1,10 +1,74 @@
 import pandas as pd
 
+import os
+
+import requests
+
+from django.core.files.base import ContentFile
+
+from django.core.files import File
+
 from django.shortcuts import render
 
 from products.models import Product, Category
 
 from .models import ImportHistory
+
+from .ocr_service import extract_text_from_image
+
+from .ai_parser import extract_product_data
+
+import re
+
+from django.http import HttpResponse
+
+from PIL import Image
+
+import pytesseract
+
+
+def test_ocr(request):
+
+    image = Image.open(
+        'media/test_product.png'
+    )
+
+    # OCR
+
+    text = pytesseract.image_to_string(image)
+
+    ai_result = extract_product_with_ai(text) 
+    
+    print(ai_result) 
+    
+    return HttpResponse(ai_result)
+
+    print(text)
+
+    # AI PARSER
+
+    product_data = extract_product_data(text)
+
+    # SHOW RESULT
+
+    final_output = f"""
+
+    PRODUCT NAME: {product_data['name']}
+
+    PRICE: {product_data['price']}
+
+    STOCK: {product_data['stock']}
+
+    CATEGORY: {product_data['category_name']}
+
+    DESCRIPTION:
+
+    {product_data['description']}
+
+    """
+
+    return HttpResponse(final_output)
+
 
 
 def bulk_upload(request):
@@ -87,6 +151,10 @@ def bulk_upload(request):
                         row['description']
                     ).strip()
 
+                    image_name = str( 
+                        row['image'] 
+                    ).strip()
+
                     # VALIDATIONS
 
                     if not name:
@@ -127,9 +195,8 @@ def bulk_upload(request):
                         )
                     )
 
-                    # CREATE / UPDATE PRODUCT
 
-                    Product.objects.update_or_create(
+                    product, created = Product.objects.update_or_create(
 
                         name=name,
 
@@ -146,6 +213,75 @@ def bulk_upload(request):
                         }
 
                     )
+
+                    # IMAGE PATH
+
+                    image_path = os.path.join(
+
+                        'media/product_images/',
+                        image_name
+
+                    )
+
+                    # IMAGE URL
+
+                    image_path = str(
+                        row['image']
+                    ).strip()
+
+                    # IMAGE DOWNLOAD
+
+                    if image_path:
+
+                        try:
+
+                            headers = {
+
+                                "User-Agent": "Mozilla/5.0"
+
+                            }
+
+                            response = requests.get(
+
+                                image_path,
+
+                                headers=headers,
+
+                                timeout=10
+
+                            )
+
+                            if response.status_code == 200:
+
+                                image_name = f"{name}.jpg"
+
+                                product.image.save(
+
+                                    image_name,
+
+                                    ContentFile(response.content),
+
+                                    save=True
+
+                                )
+
+                            else:
+
+                                errors.append(
+
+                                    f'{name} -> Image not found'
+
+                                )
+
+                        except Exception as e:
+
+                            errors.append(
+
+                                f'{name} -> Image error: {str(e)}'
+
+                            )
+
+
 
                     success_count += 1
 

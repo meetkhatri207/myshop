@@ -144,7 +144,6 @@
         <div class="payment-icon">💳</div>
 
         <h1 class="payment-title">Secure Payment</h1>
-
         <p class="payment-subtitle">Complete your payment securely using Razorpay</p>
 
         <div class="order-info">
@@ -155,7 +154,9 @@
 
             <div class="info-row">
                 <span>Customer</span>
-                <strong>{{ request.user.get_full_name|default:request.user.username }}</strong>
+                <strong>{{
+                    order.shipping_address.full_name|default:request.user.get_full_name|default:request.user.username
+                    }}</strong>
             </div>
 
             <div class="info-row">
@@ -165,7 +166,6 @@
 
             <hr style="margin: 16px 0; border: none; border-top: 1px solid #e2e8f0;">
 
-            <!-- Order Summary with Discount -->
             <div class="info-row">
                 <span>Subtotal</span>
                 <span>₹ {{ subtotal|floatformat:2 }}</span>
@@ -178,13 +178,13 @@
             </div>
             {% if order.coupon_code %}
             <div class="coupon-row">
-                🏷️ Coupon: {{ order.coupon_code }} applied successfully!
+                🏷️ Coupon: <strong>{{ order.coupon_code }}</strong> applied successfully!
             </div>
             {% endif %}
             {% else %}
             <div class="info-row">
                 <span>No Coupon Applied</span>
-                <span>₹ 0</span>
+                <span>₹ 0.00</span>
             </div>
             {% endif %}
 
@@ -208,26 +208,29 @@
 
 <script>
     var options = {
-        key: "{{ razorpay_key }}",
-        amount: "{{ payment.amount }}",
-        currency: "INR",
-        name: "MyShop",
-        description: "Order Payment - Order #{{ order.id }}",
-        order_id: "{{ payment.id }}",
-        prefill: {
-            name: "{{ request.user.get_full_name|default:request.user.username }}",
-            email: "{{ request.user.email }}",
-            contact: "{{ request.user.phone|default:'9876543210' }}"
+        "key": "{{ razorpay_key }}",
+        "amount": "{{ payment.amount }}",
+        "currency": "INR",
+        "name": "MyShop",
+        "description": "Order Payment - Order #{{ order.id }}",
+        "order_id": "{{ payment.id }}",
+
+        // Secure Callback Routing: 
+        // Razorpay will automatically make a secure POST request to this URL, 
+        // passing razorpay_payment_id, razorpay_order_id, and razorpay_signature.
+        "callback_url": "/orders/payment/callback/",
+
+        "prefill": {
+            "name": "{{ order.shipping_address.full_name|default:request.user.get_full_name|default:request.user.username }}",
+            "email": "{{ request.user.email }}",
+            "contact": "{{ order.shipping_address.phone|default:'9876543210' }}"
         },
-        theme: {
-            color: "#2563eb"
+        "theme": {
+            "color": "#2563eb"
         },
-        handler: function (response) {
-            window.location.href = "/orders/payment-success/{{ order.id }}/";
-        },
-        modal: {
-            ondismiss: function () {
-                console.log("Payment modal closed");
+        "modal": {
+            "ondismiss": function () {
+                console.log("Payment window manually closed by customer.");
             }
         }
     };
@@ -239,5 +242,56 @@
         e.preventDefault();
     }
 </script>
+
+
+<!-- <script>
+    var options = {
+        "key": "{{ razorpay_key }}",
+        "amount": "{{ payment.amount }}",
+        "currency": "INR",
+        "name": "MyShop",
+        "description": "Order Payment - Order #{{ order.id }}",
+        "order_id": "{{ payment.id }}",
+        "callback_url": "/orders/payment/callback/",
+
+        // 🛠️ FORCE RAZORPAY TO ALLOW AND DISPLAY ALL METHODS LOCALLY
+        "config": {
+            "display": {
+                "blocks": {
+                    "upi": {
+                        "name": "UPI / QR Options",
+                        "instruments": [
+                            {
+                                "method": "upi"
+                            }
+                        ]
+                    }
+                },
+                "sequence": ["block.upi", "block.cards", "block.netbanking"]
+            }
+        },
+
+        "prefill": {
+            "name": "{{ order.shipping_address.full_name|default:request.user.get_full_name|default:request.user.username }}",
+            "email": "{{ request.user.email }}",
+            "contact": "{{ order.shipping_address.phone|default:'9876543210' }}"
+        },
+        "theme": {
+            "color": "#2563eb"
+        },
+        "modal": {
+            "ondismiss": function () {
+                console.log("Payment window manually closed by customer.");
+            }
+        }
+    };
+
+    var rzp1 = new Razorpay(options);
+
+    document.getElementById('pay-btn').onclick = function (e) {
+        rzp1.open();
+        e.preventDefault();
+    }
+</script> -->
 
 {% endblock %}

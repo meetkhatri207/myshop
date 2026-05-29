@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Securing Payment Connection...</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin-top: 100px;
+        }
+
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-radius: 50%;
+            border-top: 4px solid #3498db;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <h2>Connecting with Payment Gateway...</h2>
+    <p>Please do not refresh, back out, or close this window.</p>
+    <div class="loader"></div>
+
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <script>
+        var options = {
+            "key": "{{ razorpay_merchant_key }}",
+            "amount": "{{ razorpay_amount }}",
+            "currency": "{{ currency }}",
+            "name": "My Shop My Shop",
+            "description": "Payment for Order #{{ order.id }}",
+            "order_id": "{{ razorpay_order_id }}",
+            "callback_url": "{{ callback_url }}",
+            "prefill": {
+                "name": "{{ order.shipping_address.full_name|default:order.user.get_full_name }}",
+                "email": "{{ order.user.email }}",
+                "contact": "{{ order.shipping_address.phone|default:'' }}"
+            },
+            "theme": {
+                "color": "#2980b9"
+            }
+        };
+
+        // Open checkout modal as soon as dependencies load
+        var rzp = new Razorpay(options);
+
+        rzp.on('payment.failed', function (response) {
+            alert("Payment failed: " + response.error.description);
+            window.location.href = "/orders/payment/failed/"; // Redirect safely to failure node
+        });
+
+        window.onload = function () {
+            rzp.open();
+        };
+    </script>
+</body>
+
+</html>

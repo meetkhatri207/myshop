@@ -2,10 +2,10 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-   path(
-    'payment-success/<int:order_id>/',
-    views.payment_success
-),
+#    path(
+#     'payment-success/<int:order_id>/',
+#     views.payment_success
+# ),
 path(
     'detail/<int:order_id>/',
     views.order_detail
