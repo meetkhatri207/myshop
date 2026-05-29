@@ -111,8 +111,5 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 
 # Razorpay Integration
-# RAZORPAY_KEY_ID = 'rzp_test_SrX5a3Hkw6xkYt'
-# RAZORPAY_KEY_SECRET = 'eAWPCELyiAK70plzrGgOaS1d'
-
-RAZORPAY_KEY_ID = os.environ.get('rzp_test_SrX5a3Hkw6xkYt', 'your_fallback_test_key')
-RAZORPAY_KEY_SECRET = os.environ.get('eAWPCELyiAK70plzrGgOaS1d', 'your_fallback_secret_key')
+RAZORPAY_KEY_ID = 'rzp_test_SrX5a3Hkw6xkYt'
+RAZORPAY_KEY_SECRET = 'eAWPCELyiAK70plzrGgOaS1d'
