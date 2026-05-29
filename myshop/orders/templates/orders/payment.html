@@ -207,6 +207,9 @@
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 
 <script>
+    // Dynamically build the absolute callback URL based on your current server domain
+    var absoluteCallbackUrl = window.location.origin + "/orders/payment/callback/";
+
     var options = {
         "key": "{{ razorpay_key }}",
         "amount": "{{ payment.amount }}",
@@ -215,11 +218,25 @@
         "description": "Order Payment - Order #{{ order.id }}",
         "order_id": "{{ payment.id }}",
 
-        // Secure Callback Routing: 
-        // Razorpay will automatically make a secure POST request to this URL, 
-        // passing razorpay_payment_id, razorpay_order_id, and razorpay_signature.
-        "callback_url": "/orders/payment/callback/",
+        // Fixed: Razorpay needs the absolute URL (HTTPS) on live servers like Render
+        "callback_url": absoluteCallbackUrl,
 
+        // Explicitly force the checkout wizard to show UPI blocks on staging
+        "config": {
+            "display": {
+                "blocks": {
+                    "upi": {
+                        "name": "UPI / QR Options",
+                        "instruments": [
+                            {
+                                "method": "upi"
+                            }
+                        ]
+                    }
+                },
+                "sequence": ["block.upi", "block.cards", "block.netbanking"]
+            }
+        },
         "prefill": {
             "name": "{{ order.shipping_address.full_name|default:request.user.get_full_name|default:request.user.username }}",
             "email": "{{ request.user.email }}",
