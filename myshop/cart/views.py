@@ -184,104 +184,10 @@ def cart_detail(request):
 
 @login_required
 def checkout(request):
-
-    cart = request.session.get('cart', {})
-
-    address_id = request.session.get(
-        'shipping_address_id'
-    )
-
-    shipping_address = ShippingAddress.objects.get(
-        id=address_id
-    )
-
-    if not cart:
-
-        return HttpResponse(
-            'Cart is empty'
-        )
-
-    total = 0
-
-    for product_id, quantity in cart.items():
-
-        product = Product.objects.get(
-            id=product_id
-        )
-
-        if product.stock < quantity:
-
-            return HttpResponse(
-                f'{product.name} is out of stock'
-            )
-
-        total += product.price * quantity
-
-    coupon_data = request.session.get(
-        'coupon',
-        {}
-    )
-
-    discount_amount = 0
-
-    if coupon_data:
-
-        amount = coupon_data.get(
-            'amount',
-            0
-        )
-
-        discount_type = coupon_data.get(
-            'discount_type',
-            ''
-        )
-
-        if discount_type == 'percentage':
-
-            discount_amount = (
-                total * amount
-            ) / 100
-
-        elif discount_type == 'flat':
-
-            discount_amount = amount
-
-
-    order = Order.objects.create(
-        user=request.user,
-        total_price=total,
-        payment_status=True,
-        shipping_address=shipping_address
-    )
-
-    for product_id, quantity in cart.items():
-
-        product = Product.objects.get(
-            id=product_id
-        )
-
-        OrderItem.objects.create(
-            order=order,
-            product=product,
-            quantity=quantity,
-            price=product.price
-        )
-
-        product.stock -= quantity
-
-        product.save()
-
-    request.session['cart'] = {}
-
-    if 'coupon' in request.session:
-
-        del request.session['coupon']
-
-        
-
-    return redirect(
-        f'/orders/payment/{order.id}/'
-    )
+    """Legacy checkout URL — use shipping → create-order flow (no DB order before payment)."""
+    if not request.session.get('shipping_address_id'):
+        return redirect('/orders/shipping-address/')
+    return redirect('create_order')
 
 def cart_remove(request, id):
 

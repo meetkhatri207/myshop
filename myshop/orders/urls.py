@@ -17,12 +17,12 @@ urlpatterns = [
         name='payment_success',
     ),
     path(
-        'payment/failed/<int:order_id>/',
+        'payment/failed/',
         views.payment_failed,
         name='payment_failed',
     ),
     path(
-        'payment/<int:order_id>/',
+        'payment/',
         views.payment_page,
         name='payment_page',
     ),

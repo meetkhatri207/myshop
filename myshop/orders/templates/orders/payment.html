@@ -105,6 +105,12 @@
     .status-msg.error {
         color: #dc2626;
     }
+
+    .pending-note {
+        font-size: 13px;
+        color: #64748b;
+        margin-bottom: 12px;
+    }
 </style>
 
 <div class="payment-container">
@@ -114,15 +120,12 @@
         <div class="payment-icon">💳</div>
         <h1 class="payment-title">Secure Payment</h1>
         <p class="payment-subtitle">Pay with UPI, Card, Net Banking, or Wallet via Razorpay</p>
+        <p class="pending-note">Order will be created only after successful payment.</p>
 
         <div class="order-info">
             <div class="info-row">
-                <span>Order ID</span>
-                <strong>#{{ order.id }}</strong>
-            </div>
-            <div class="info-row">
                 <span>Customer</span>
-                <strong>{{ order.shipping_address.full_name|default:request.user.get_full_name|default:request.user.username }}</strong>
+                <strong>{{ customer_name }}</strong>
             </div>
             <div class="info-row">
                 <span>Subtotal</span>
@@ -160,6 +163,7 @@
 
     var payBtn = document.getElementById("pay-btn");
     var statusMsg = document.getElementById("status-msg");
+    var failedUrl = "{% url 'payment_failed' %}";
 
     function setStatus(text, isError) {
         statusMsg.textContent = text || "";
@@ -171,7 +175,7 @@
         amount: {{ amount_paise }},
         currency: "INR",
         name: "MyShop",
-        description: "Order #{{ order.id }}",
+        description: "MyShop order payment",
         order_id: "{{ razorpay_order_id }}",
         prefill: {
             name: "{{ customer_name|escapejs }}",
@@ -194,8 +198,7 @@
                 body: JSON.stringify({
                     razorpay_payment_id: response.razorpay_payment_id,
                     razorpay_order_id: response.razorpay_order_id,
-                    razorpay_signature: response.razorpay_signature,
-                    order_id: {{ order.id }}
+                    razorpay_signature: response.razorpay_signature
                 })
             })
             .then(function (res) { return res.json(); })
@@ -203,11 +206,11 @@
                 if (data.status === "success" && data.redirect_url) {
                     window.location.href = data.redirect_url;
                 } else {
-                    window.location.href = data.failed_url || "{% url 'payment_failed' order.id %}";
+                    window.location.href = data.failed_url || failedUrl;
                 }
             })
             .catch(function () {
-                window.location.href = "{% url 'payment_failed' order.id %}?reason=verify_error";
+                window.location.href = failedUrl + "?reason=verify_error";
             });
         },
         modal: {
@@ -222,7 +225,7 @@
 
     rzp.on("payment.failed", function (response) {
         var reason = (response.error && response.error.description) ? response.error.description : "Payment failed";
-        window.location.href = "{% url 'payment_failed' order.id %}?reason=" + encodeURIComponent(reason);
+        window.location.href = failedUrl + "?reason=" + encodeURIComponent(reason);
     });
 
     payBtn.onclick = function (e) {
