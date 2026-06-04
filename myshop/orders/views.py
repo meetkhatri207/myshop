@@ -1,3 +1,4 @@
+import json
 import razorpay
 from io import BytesIO
 from decimal import Decimal
@@ -7,8 +8,10 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
 from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
+from django.urls import reverse
 
 # ReportLab Imports for PDF Generation
 from reportlab.pdfgen import canvas
@@ -26,6 +29,23 @@ from products.models import Product  # Assumed structured location based on your
 
 # Initialize Razorpay Client
 razorpay_client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
+
+
+def _complete_order_payment(order, payment_id):
+    order.payment_id = payment_id
+    order.payment_status = True
+    order.status = 'Processing'
+    order.save()
+
+
+def _verify_razorpay_signature(razorpay_order_id, razorpay_payment_id, razorpay_signature):
+    params_dict = {
+        'razorpay_order_id': razorpay_order_id,
+        'razorpay_payment_id': razorpay_payment_id,
+        'razorpay_signature': razorpay_signature,
+    }
+    razorpay_client.utility.verify_payment_signature(params_dict)
+    return True
 
 
 @login_required
@@ -134,69 +154,166 @@ def payment_page(request, order_id):
         messages.error(request, "Amount exceeds gateway limits.")
         return redirect('/cart/')
 
-    try:
-        payment = razorpay_client.order.create({
-            "amount": amount_in_paise,
-            "currency": "INR",
-            "payment_capture": 1
-        })
-    except Exception as e:
-        messages.error(request, f"Gateway Error: {str(e)}")
-        return redirect('/cart/')
+    razorpay_order_id = order.razorpay_order_id
+    if not razorpay_order_id:
+        try:
+            payment = razorpay_client.order.create({
+                "amount": amount_in_paise,
+                "currency": "INR",
+                "receipt": f"order_{order.id}",
+                "payment_capture": 1,
+            })
+            razorpay_order_id = payment['id']
+            order.razorpay_order_id = razorpay_order_id
+            order.save(update_fields=['razorpay_order_id'])
+        except Exception as e:
+            messages.error(request, f"Gateway Error: {str(e)}")
+            return redirect('/cart/')
+    else:
+        try:
+            existing = razorpay_client.order.fetch(razorpay_order_id)
+            if int(existing.get('amount', 0)) != amount_in_paise:
+                payment = razorpay_client.order.create({
+                    "amount": amount_in_paise,
+                    "currency": "INR",
+                    "receipt": f"order_{order.id}",
+                    "payment_capture": 1,
+                })
+                razorpay_order_id = payment['id']
+                order.razorpay_order_id = razorpay_order_id
+                order.save(update_fields=['razorpay_order_id'])
+        except Exception:
+            payment = razorpay_client.order.create({
+                "amount": amount_in_paise,
+                "currency": "INR",
+                "receipt": f"order_{order.id}",
+                "payment_capture": 1,
+            })
+            razorpay_order_id = payment['id']
+            order.razorpay_order_id = razorpay_order_id
+            order.save(update_fields=['razorpay_order_id'])
 
-    # Save Razorpay order ID to model instance
-    order.razorpay_order_id = payment['id']
-    order.save()
+    shipping = order.shipping_address
+    customer_name = (
+        shipping.full_name if shipping
+        else request.user.get_full_name() or request.user.username
+    )
+    customer_phone = shipping.phone if shipping and shipping.phone else '9999999999'
+    customer_email = request.user.email or ''
 
     return render(request, 'orders/payment.html', {
         'order': order,
-        'payment': payment,
         'razorpay_key': settings.RAZORPAY_KEY_ID,
+        'razorpay_order_id': razorpay_order_id,
+        'amount_paise': amount_in_paise,
         'discount_amount': discount_amount,
         'final_total': final_total,
-        'subtotal': subtotal
+        'subtotal': subtotal,
+        'customer_name': customer_name,
+        'customer_email': customer_email,
+        'customer_phone': customer_phone,
+    })
+
+
+@login_required
+@require_POST
+def verify_payment(request):
+    try:
+        data = json.loads(request.body.decode('utf-8'))
+    except json.JSONDecodeError:
+        return JsonResponse({'status': 'error', 'message': 'Invalid request'}, status=400)
+
+    order_id = data.get('order_id')
+    razorpay_order_id = data.get('razorpay_order_id', '')
+    razorpay_payment_id = data.get('razorpay_payment_id', '')
+    razorpay_signature = data.get('razorpay_signature', '')
+
+    try:
+        order = Order.objects.get(
+            id=order_id,
+            user=request.user,
+            payment_status=False,
+        )
+    except Order.DoesNotExist:
+        return JsonResponse({'status': 'error', 'message': 'Order not found'}, status=404)
+
+    if order.razorpay_order_id != razorpay_order_id:
+        return JsonResponse({'status': 'error', 'message': 'Order mismatch'}, status=400)
+
+    try:
+        _verify_razorpay_signature(
+            razorpay_order_id,
+            razorpay_payment_id,
+            razorpay_signature,
+        )
+        _complete_order_payment(order, razorpay_payment_id)
+        if 'coupon' in request.session:
+            del request.session['coupon']
+
+        return JsonResponse({
+            'status': 'success',
+            'redirect_url': reverse('payment_success', kwargs={'order_id': order.id}),
+        })
+    except Exception:
+        return JsonResponse({
+            'status': 'error',
+            'failed_url': reverse('payment_failed', kwargs={'order_id': order.id}),
+        }, status=400)
+
+
+@login_required
+def payment_success(request, order_id):
+    order = get_object_or_404(
+        Order,
+        id=order_id,
+        user=request.user,
+        payment_status=True,
+    )
+    return render(request, 'orders/success.html', {'order': order})
+
+
+@login_required
+def payment_failed(request, order_id):
+    order = get_object_or_404(
+        Order,
+        id=order_id,
+        user=request.user,
+        payment_status=False,
+    )
+    error_message = request.GET.get('reason', '')
+    return render(request, 'orders/payment_failed.html', {
+        'order': order,
+        'error_message': error_message,
     })
 
 
 @csrf_exempt
 def payment_callback(request):
-    """
-    Handles secure payload returns dispatched by Razorpay Checkout script forms.
-    """
-    if request.method == "POST":
-        payment_id = request.POST.get('razorpay_payment_id', '')
-        order_id = request.POST.get('razorpay_order_id', '')
-        signature = request.POST.get('razorpay_signature', '')
-        
-        params_dict = {
-            'razorpay_order_id': order_id,
-            'razorpay_payment_id': payment_id,
-            'razorpay_signature': signature
-        }
-        
-        try:
-            # Verify cryptographic payment payload authenticity
-            result = razorpay_client.utility.verify_payment_signature(params_dict)
-            
-            if result is None:  # Returns None if valid signature verified
-                order = Order.objects.get(razorpay_order_id=order_id)
-                order.payment_id = payment_id
-                order.payment_status = True
-                order.status = 'Processing'
-                order.save()
-                
-                # Clear applied coupon from session memory securely post-purchase
-                if 'coupon' in request.session:
-                    del request.session['coupon']
-                
-                return render(request, 'orders/success.html', {'order': order})
-            else:
-                return render(request, 'orders/payment_failed.html')
-                
-        except Exception as e:
-            return render(request, 'orders/payment_failed.html')
-            
-    return HttpResponseBadRequest("Method not allowed")
+    """Fallback for Razorpay callback_url POST (if used)."""
+    if request.method != "POST":
+        return HttpResponseBadRequest("Method not allowed")
+
+    payment_id = request.POST.get('razorpay_payment_id', '')
+    razorpay_order_id = request.POST.get('razorpay_order_id', '')
+    signature = request.POST.get('razorpay_signature', '')
+
+    try:
+        _verify_razorpay_signature(razorpay_order_id, payment_id, signature)
+        order = Order.objects.get(razorpay_order_id=razorpay_order_id, payment_status=False)
+        _complete_order_payment(order, payment_id)
+        if 'coupon' in request.session:
+            del request.session['coupon']
+        return render(request, 'orders/success.html', {'order': order})
+    except Order.DoesNotExist:
+        return render(request, 'orders/payment_failed.html', {
+            'order': None,
+            'error_message': 'Order not found for this payment.',
+        })
+    except Exception:
+        return render(request, 'orders/payment_failed.html', {
+            'order': None,
+            'error_message': 'Payment verification failed.',
+        })
 
 
 def apply_coupon(request):

@@ -1,32 +1,22 @@
+{% extends 'base.html' %}
+
 {% block content %}
 
 <style>
-    * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-        font-family: Arial, Helvetica, sans-serif;
-    }
-
-    body {
-        background: #f5f7fb;
-    }
-
     .payment-container {
-        min-height: 90vh;
+        min-height: 80vh;
         max-width: 500px;
         display: flex;
         flex-direction: column;
         gap: 16px;
         align-items: center;
-        margin: auto;
+        margin: 40px auto;
         padding: 20px;
     }
 
     .payment-card {
         width: 100%;
-        max-width: 500px;
-        background: white;
+        background: #fff;
         padding: 40px;
         border-radius: 24px;
         box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
@@ -47,7 +37,7 @@
     }
 
     .payment-title {
-        font-size: 36px;
+        font-size: 32px;
         margin-bottom: 12px;
         color: #0f172a;
     }
@@ -74,12 +64,8 @@
         color: #334155;
     }
 
-    .info-row:last-child {
-        margin-bottom: 0;
-    }
-
     .grand-total {
-        font-size: 24px;
+        font-size: 22px;
         font-weight: bold;
         color: #2563eb;
         border-top: 2px solid #e2e8f0;
@@ -92,223 +78,160 @@
         font-weight: 600;
     }
 
-    .coupon-row {
-        color: #7c3aed;
-        font-size: 14px;
-        background: #f3e8ff;
-        padding: 8px 12px;
-        border-radius: 8px;
-        margin-top: 8px;
-    }
-
     .pay-btn {
         width: 100%;
         padding: 16px;
         border: none;
         border-radius: 16px;
         background: #2563eb;
-        color: white;
+        color: #fff;
         font-size: 17px;
         font-weight: bold;
         cursor: pointer;
-        transition: 0.3s;
     }
 
-    .pay-btn:hover {
-        background: #1d4ed8;
-        transform: translateY(-2px);
+    .pay-btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
     }
 
-    .secure-text {
-        margin-top: 18px;
-        color: #64748b;
+    .status-msg {
+        margin-top: 14px;
         font-size: 14px;
+        color: #64748b;
+        min-height: 20px;
     }
 
-    @media(max-width: 600px) {
-        .payment-card {
-            padding: 30px;
-        }
-
-        .payment-title {
-            font-size: 30px;
-        }
+    .status-msg.error {
+        color: #dc2626;
     }
 </style>
 
 <div class="payment-container">
-    <a href="/cart/" style="margin-right: auto; color: #1d4ed8; font-weight: 600; text-decoration: none;">⬅ Back to
-        Cart</a>
+    <a href="/cart/" style="margin-right: auto; color: #1d4ed8; font-weight: 600; text-decoration: none;">← Back to Cart</a>
 
     <div class="payment-card">
         <div class="payment-icon">💳</div>
-
         <h1 class="payment-title">Secure Payment</h1>
-        <p class="payment-subtitle">Complete your payment securely using Razorpay</p>
+        <p class="payment-subtitle">Pay with UPI, Card, Net Banking, or Wallet via Razorpay</p>
 
         <div class="order-info">
             <div class="info-row">
                 <span>Order ID</span>
                 <strong>#{{ order.id }}</strong>
             </div>
-
             <div class="info-row">
                 <span>Customer</span>
-                <strong>{{
-                    order.shipping_address.full_name|default:request.user.get_full_name|default:request.user.username
-                    }}</strong>
+                <strong>{{ order.shipping_address.full_name|default:request.user.get_full_name|default:request.user.username }}</strong>
             </div>
-
-            <div class="info-row">
-                <span>Payment Method</span>
-                <strong>Razorpay (UPI/Card/NetBanking)</strong>
-            </div>
-
-            <hr style="margin: 16px 0; border: none; border-top: 1px solid #e2e8f0;">
-
             <div class="info-row">
                 <span>Subtotal</span>
                 <span>₹ {{ subtotal|floatformat:2 }}</span>
             </div>
-
             {% if discount_amount > 0 %}
             <div class="info-row discount-row">
-                <span>Discount Applied</span>
+                <span>Discount</span>
                 <span>- ₹ {{ discount_amount|floatformat:2 }}</span>
             </div>
-            {% if order.coupon_code %}
-            <div class="coupon-row">
-                🏷️ Coupon: <strong>{{ order.coupon_code }}</strong> applied successfully!
-            </div>
             {% endif %}
-            {% else %}
-            <div class="info-row">
-                <span>No Coupon Applied</span>
-                <span>₹ 0.00</span>
-            </div>
-            {% endif %}
-
             <div class="info-row grand-total">
-                <span><strong>Total Amount to Pay</strong></span>
+                <span><strong>Total</strong></span>
                 <span><strong>₹ {{ final_total|floatformat:2 }}</strong></span>
             </div>
         </div>
 
-        <button id="pay-btn" class="pay-btn">
+        <button id="pay-btn" class="pay-btn" type="button">
             Pay ₹ {{ final_total|floatformat:2 }}
         </button>
-
-        <p class="secure-text">
-            🔒 100% Secure Payment Gateway | All transactions are encrypted
-        </p>
+        <p id="status-msg" class="status-msg"></p>
     </div>
 </div>
 
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
-
 <script>
-    // Dynamically build the absolute callback URL based on your current server domain
-    var absoluteCallbackUrl = window.location.origin + "/orders/payment/callback/";
+    function getCookie(name) {
+        var value = "; " + document.cookie;
+        var parts = value.split("; " + name + "=");
+        if (parts.length === 2) {
+            return parts.pop().split(";").shift();
+        }
+        return "";
+    }
+
+    var payBtn = document.getElementById("pay-btn");
+    var statusMsg = document.getElementById("status-msg");
+
+    function setStatus(text, isError) {
+        statusMsg.textContent = text || "";
+        statusMsg.className = isError ? "status-msg error" : "status-msg";
+    }
 
     var options = {
-        "key": "{{ razorpay_key }}",
-        "amount": "{{ payment.amount }}",
-        "currency": "INR",
-        "name": "MyShop",
-        "description": "Order Payment - Order #{{ order.id }}",
-        "order_id": "{{ payment.id }}",
+        key: "{{ razorpay_key }}",
+        amount: {{ amount_paise }},
+        currency: "INR",
+        name: "MyShop",
+        description: "Order #{{ order.id }}",
+        order_id: "{{ razorpay_order_id }}",
+        prefill: {
+            name: "{{ customer_name|escapejs }}",
+            email: "{{ customer_email|escapejs }}",
+            contact: "{{ customer_phone|escapejs }}"
+        },
+        theme: {
+            color: "#2563eb"
+        },
+        handler: function (response) {
+            setStatus("Verifying payment, please wait...");
+            payBtn.disabled = true;
 
-        // Fixed: Razorpay needs the absolute URL (HTTPS) on live servers like Render
-        "callback_url": absoluteCallbackUrl,
-
-        // Explicitly force the checkout wizard to show UPI blocks on staging
-        "config": {
-            "display": {
-                "blocks": {
-                    "upi": {
-                        "name": "UPI / QR Options",
-                        "instruments": [
-                            {
-                                "method": "upi"
-                            }
-                        ]
-                    }
+            fetch("{% url 'verify_payment' %}", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": getCookie("csrftoken")
                 },
-                "sequence": ["block.upi", "block.cards", "block.netbanking"]
-            }
+                body: JSON.stringify({
+                    razorpay_payment_id: response.razorpay_payment_id,
+                    razorpay_order_id: response.razorpay_order_id,
+                    razorpay_signature: response.razorpay_signature,
+                    order_id: {{ order.id }}
+                })
+            })
+            .then(function (res) { return res.json(); })
+            .then(function (data) {
+                if (data.status === "success" && data.redirect_url) {
+                    window.location.href = data.redirect_url;
+                } else {
+                    window.location.href = data.failed_url || "{% url 'payment_failed' order.id %}";
+                }
+            })
+            .catch(function () {
+                window.location.href = "{% url 'payment_failed' order.id %}?reason=verify_error";
+            });
         },
-        "prefill": {
-            "name": "{{ order.shipping_address.full_name|default:request.user.get_full_name|default:request.user.username }}",
-            "email": "{{ request.user.email }}",
-            "contact": "{{ order.shipping_address.phone|default:'9876543210' }}"
-        },
-        "theme": {
-            "color": "#2563eb"
-        },
-        "modal": {
-            "ondismiss": function () {
-                console.log("Payment window manually closed by customer.");
+        modal: {
+            ondismiss: function () {
+                setStatus("Payment cancelled. Click Pay to try again.", true);
+                payBtn.disabled = false;
             }
         }
     };
 
-    var rzp1 = new Razorpay(options);
+    var rzp = new Razorpay(options);
 
-    document.getElementById('pay-btn').onclick = function (e) {
-        rzp1.open();
+    rzp.on("payment.failed", function (response) {
+        var reason = (response.error && response.error.description) ? response.error.description : "Payment failed";
+        window.location.href = "{% url 'payment_failed' order.id %}?reason=" + encodeURIComponent(reason);
+    });
+
+    payBtn.onclick = function (e) {
         e.preventDefault();
-    }
+        setStatus("");
+        payBtn.disabled = true;
+        rzp.open();
+        payBtn.disabled = false;
+    };
 </script>
-
-
-<!-- <script>
-    var options = {
-        "key": "{{ razorpay_key }}",
-        "amount": "{{ payment.amount }}",
-        "currency": "INR",
-        "name": "MyShop",
-        "description": "Order Payment - Order #{{ order.id }}",
-        "order_id": "{{ payment.id }}",
-        "callback_url": "/orders/payment/callback/",
-
-        // 🛠️ FORCE RAZORPAY TO ALLOW AND DISPLAY ALL METHODS LOCALLY
-        "config": {
-            "display": {
-                "blocks": {
-                    "upi": {
-                        "name": "UPI / QR Options",
-                        "instruments": [
-                            {
-                                "method": "upi"
-                            }
-                        ]
-                    }
-                },
-                "sequence": ["block.upi", "block.cards", "block.netbanking"]
-            }
-        },
-
-        "prefill": {
-            "name": "{{ order.shipping_address.full_name|default:request.user.get_full_name|default:request.user.username }}",
-            "email": "{{ request.user.email }}",
-            "contact": "{{ order.shipping_address.phone|default:'9876543210' }}"
-        },
-        "theme": {
-            "color": "#2563eb"
-        },
-        "modal": {
-            "ondismiss": function () {
-                console.log("Payment window manually closed by customer.");
-            }
-        }
-    };
-
-    var rzp1 = new Razorpay(options);
-
-    document.getElementById('pay-btn').onclick = function (e) {
-        rzp1.open();
-        e.preventDefault();
-    }
-</script> -->
 
 {% endblock %}
